@@ -1,8 +1,8 @@
 import ustyler from 'ustyler';
 
 import {
-  hasCompanion, loadTheme, resolveHLJS, update,
-  mouseover, transitionend
+  hasCompanion, loadTheme, raf, resolveHLJS, update,
+  pointerover, transitionend
 } from './utils.js';
 
 customElements.whenDefined('uce-lib').then(() => {
@@ -14,7 +14,8 @@ customElements.whenDefined('uce-lib').then(() => {
     attributeChanged(name) {
       if (name === 'theme')
         loadTheme(this.props.theme);
-      this.render();
+      if (hasCompanion(this))
+        raf(() => this.render());
     },
     init() {
       if (!loadHLJS) {
@@ -25,16 +26,18 @@ customElements.whenDefined('uce-lib').then(() => {
           'code.uce-highlight{transition:opacity .3s;font-size:inherit;}'
         );
       }
-      this.multiLine = /^pre$/i.test(this.parentNode.nodeName);
-      this.contentEditable = this.multiLine;
-      this.render();
+      raf(() => {
+        this.multiLine = /^pre$/i.test(this.parentNode.nodeName);
+        this.contentEditable = this.multiLine;
+        this.render();
+      });
     },
     onfocus() {
       this.editing = true;
       if (hasCompanion(this)) {
         const currentTarget = this.nextElementSibling;
         if (currentTarget.style.display != 'none')
-          mouseover({currentTarget});
+          pointerover({currentTarget});
       }
     },
     onblur() {
@@ -47,22 +50,28 @@ customElements.whenDefined('uce-lib').then(() => {
         const {style} = this.nextElementSibling;
         style.opacity = 0;
         style.display = null;
-        requestAnimationFrame(
-          () => requestAnimationFrame(
-            () => {
-              update(this);
-              style.opacity = 1;
-            }
-          )
-        );
+        raf(() => {
+          update(this);
+          style.opacity = 1;
+        });
       }
     },
-    onmouseout() {
+    onkeydown(event) {
+      if (event.keyCode == 83 && (event.metaKey || event.ctrlKey)) {
+        event.preventDefault();
+        this.dispatchEvent(new CustomEvent('controlSave'));
+      }
+    },
+    onpointerout() {
       if (!this.editing)
         this.onblur();
     },
     onpaste(event) {
       event.preventDefault();
+      const paste = (event.clipboardData || clipboardData).getData('text');
+      if (paste.length)
+        document.execCommand('insertText', null, paste);
+      /*
       const selection = getSelection();
       if (selection.rangeCount) {
         const paste = (event.clipboardData || clipboardData).getData('text');
@@ -72,6 +81,7 @@ customElements.whenDefined('uce-lib').then(() => {
         );
         selection.collapseToEnd();
       }
+      */
     },
     render() {
       loadHLJS.then(() => update(this));

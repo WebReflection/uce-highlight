@@ -15,7 +15,7 @@ customElements.whenDefined('uce-lib').then(() => {
 
     attributeChanged(name) {
       if (name === 'theme') (0, _utils.loadTheme)(this.props.theme);
-      this.render();
+      if ((0, _utils.hasCompanion)(this)) (0, _utils.raf)(() => this.render());
     },
 
     init() {
@@ -24,9 +24,11 @@ customElements.whenDefined('uce-lib').then(() => {
         (0, _ustyler.default)('*:not(pre)>code[is="uce-highlight"]{display:inline;}' + 'pre>code.uce-highlight{position:absolute;transform:translateY(-100%);}' + 'code.uce-highlight{transition:opacity .3s;font-size:inherit;}');
       }
 
-      this.multiLine = /^pre$/i.test(this.parentNode.nodeName);
-      this.contentEditable = this.multiLine;
-      this.render();
+      (0, _utils.raf)(() => {
+        this.multiLine = /^pre$/i.test(this.parentNode.nodeName);
+        this.contentEditable = this.multiLine;
+        this.render();
+      });
     },
 
     onfocus() {
@@ -34,7 +36,7 @@ customElements.whenDefined('uce-lib').then(() => {
 
       if ((0, _utils.hasCompanion)(this)) {
         const currentTarget = this.nextElementSibling;
-        if (currentTarget.style.display != 'none') (0, _utils.mouseover)({
+        if (currentTarget.style.display != 'none') (0, _utils.pointerover)({
           currentTarget
         });
       }
@@ -50,27 +52,39 @@ customElements.whenDefined('uce-lib').then(() => {
         } = this.nextElementSibling;
         style.opacity = 0;
         style.display = null;
-        requestAnimationFrame(() => requestAnimationFrame(() => {
+        (0, _utils.raf)(() => {
           (0, _utils.update)(this);
           style.opacity = 1;
-        }));
+        });
       }
     },
 
-    onmouseout() {
+    onkeydown(event) {
+      if (event.keyCode == 83 && (event.metaKey || event.ctrlKey)) {
+        event.preventDefault();
+        this.dispatchEvent(new CustomEvent('controlSave'));
+      }
+    },
+
+    onpointerout() {
       if (!this.editing) this.onblur();
     },
 
     onpaste(event) {
       event.preventDefault();
+      const paste = (event.clipboardData || clipboardData).getData('text');
+      if (paste.length) document.execCommand('insertText', null, paste);
+      /*
       const selection = getSelection();
-
       if (selection.rangeCount) {
         const paste = (event.clipboardData || clipboardData).getData('text');
         selection.deleteFromDocument();
-        selection.getRangeAt(0).insertNode(document.createTextNode(paste.replace(/\r\n/g, '\n')));
+        selection.getRangeAt(0).insertNode(
+          document.createTextNode(paste.replace(/\r\n/g, '\n'))
+        );
         selection.collapseToEnd();
       }
+      */
     },
 
     render() {

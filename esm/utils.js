@@ -1,17 +1,17 @@
 const CDN = '//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3';
 
-const mouseout = ({currentTarget}) => {
+const scrollSync = (a, b) => {
+  a.scrollTop = b.scrollTop;
+  a.scrollLeft = b.scrollLeft;
+};
+
+const pointerout = ({currentTarget}) => {
   currentTarget.style.opacity = 1;
 };
 
 export const hasCompanion = ({nextElementSibling}) =>
                         nextElementSibling &&
                         nextElementSibling.classList.contains('uce-highlight');
-
-export const mouseover = ({currentTarget}) => {
-  currentTarget.addEventListener('transitionend', transitionend);
-  currentTarget.style.opacity = 0;
-};
 
 // list of themes in the CSS section
 // https://cdnjs.com/libraries/highlight.js
@@ -33,10 +33,16 @@ export const loadTheme = theme => {
   document.head.appendChild(link);
 };
 
-export const transitionend = ({currentTarget: {style}, propertyName}) => {
-  if (propertyName === 'opacity' && style.opacity == 0) {
-    style.display = 'none';
-  }
+export const pointerover = ({currentTarget}) => {
+  scrollSync(currentTarget.previousSibling, currentTarget);
+  currentTarget.addEventListener('transitionend', transitionend);
+  currentTarget.style.opacity = 0;
+};
+
+export const raf = fn => {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(fn);
+  });
 };
 
 export const resolveHLJS = theme => Promise.resolve(
@@ -50,6 +56,12 @@ export const resolveHLJS = theme => Promise.resolve(
   })
 );
 
+export const transitionend = ({currentTarget: {style}, propertyName}) => {
+  if (propertyName === 'opacity' && style.opacity == 0) {
+    style.display = 'none';
+  }
+};
+
 export const update = self => {
   const {multiLine, nextElementSibling, props, innerHTML, textContent} = self;
   self.classList.add('hljs');
@@ -58,8 +70,8 @@ export const update = self => {
     if (!hasCompanion(self)) {
       code = document.createElement('code');
       code.textContent = textContent;
-      code.addEventListener('mouseover', mouseover);
-      code.addEventListener('mouseout', mouseout);
+      code.addEventListener('pointerover', pointerover);
+      code.addEventListener('pointerout', pointerout);
       self.parentNode.insertBefore(code, self.nextSibling);
     }
     else
@@ -68,7 +80,6 @@ export const update = self => {
     window.hljs.highlightBlock(code);
     code.style.width = self.offsetWidth + 'px';
     code.style.height = self.offsetHeight + 'px';
-    code.scrollTop = self.scrollTop;
-    code.scrollLeft = self.scrollLeft;
+    scrollSync(code, self);
   }
 };

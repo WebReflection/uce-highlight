@@ -22,7 +22,12 @@
 
   var CDN = '//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3';
 
-  var mouseout = function mouseout(_ref) {
+  var scrollSync = function scrollSync(a, b) {
+    a.scrollTop = b.scrollTop;
+    a.scrollLeft = b.scrollLeft;
+  };
+
+  var pointerout = function pointerout(_ref) {
     var currentTarget = _ref.currentTarget;
     currentTarget.style.opacity = 1;
   };
@@ -30,11 +35,6 @@
   var hasCompanion = function hasCompanion(_ref2) {
     var nextElementSibling = _ref2.nextElementSibling;
     return nextElementSibling && nextElementSibling.classList.contains('uce-highlight');
-  };
-  var mouseover = function mouseover(_ref3) {
-    var currentTarget = _ref3.currentTarget;
-    currentTarget.addEventListener('transitionend', transitionend);
-    currentTarget.style.opacity = 0;
   }; // list of themes in the CSS section
   // https://cdnjs.com/libraries/highlight.js
   // just pass the theme name: /style/{{name}}.min.css
@@ -56,13 +56,16 @@
     });
     document.head.appendChild(link);
   };
-  var transitionend = function transitionend(_ref4) {
-    var style = _ref4.currentTarget.style,
-        propertyName = _ref4.propertyName;
-
-    if (propertyName === 'opacity' && style.opacity == 0) {
-      style.display = 'none';
-    }
+  var pointerover = function pointerover(_ref3) {
+    var currentTarget = _ref3.currentTarget;
+    scrollSync(currentTarget.previousSibling, currentTarget);
+    currentTarget.addEventListener('transitionend', transitionend);
+    currentTarget.style.opacity = 0;
+  };
+  var raf = function raf(fn) {
+    requestAnimationFrame(function () {
+      requestAnimationFrame(fn);
+    });
   };
   var resolveHLJS = function resolveHLJS(theme) {
     return Promise.resolve(window.hljs || new Promise(function ($) {
@@ -72,6 +75,14 @@
       document.head.appendChild(script);
       loadTheme(theme || 'default');
     }));
+  };
+  var transitionend = function transitionend(_ref4) {
+    var style = _ref4.currentTarget.style,
+        propertyName = _ref4.propertyName;
+
+    if (propertyName === 'opacity' && style.opacity == 0) {
+      style.display = 'none';
+    }
   };
   var update = function update(self) {
     var multiLine = self.multiLine,
@@ -87,8 +98,8 @@
       if (!hasCompanion(self)) {
         code = document.createElement('code');
         code.textContent = textContent;
-        code.addEventListener('mouseover', mouseover);
-        code.addEventListener('mouseout', mouseout);
+        code.addEventListener('pointerover', pointerover);
+        code.addEventListener('pointerout', pointerout);
         self.parentNode.insertBefore(code, self.nextSibling);
       } else code.innerHTML = innerHTML.replace(/<div>/g, '\n').replace(/<[>]+>/g, '\n');
 
@@ -96,8 +107,7 @@
       window.hljs.highlightBlock(code);
       code.style.width = self.offsetWidth + 'px';
       code.style.height = self.offsetHeight + 'px';
-      code.scrollTop = self.scrollTop;
-      code.scrollLeft = self.scrollLeft;
+      scrollSync(code, self);
     }
   };
 
@@ -110,31 +120,40 @@
       "extends": 'code',
       observedAttributes: ['lang', 'theme'],
       attributeChanged: function attributeChanged(name) {
+        var _this = this;
+
         if (name === 'theme') loadTheme(this.props.theme);
-        this.render();
+        if (hasCompanion(this)) raf(function () {
+          return _this.render();
+        });
       },
       init: function init() {
+        var _this2 = this;
+
         if (!loadHLJS) {
           loadHLJS = resolveHLJS(this.props.theme);
           ustyler('*:not(pre)>code[is="uce-highlight"]{display:inline;}' + 'pre>code.uce-highlight{position:absolute;transform:translateY(-100%);}' + 'code.uce-highlight{transition:opacity .3s;font-size:inherit;}');
         }
 
-        this.multiLine = /^pre$/i.test(this.parentNode.nodeName);
-        this.contentEditable = this.multiLine;
-        this.render();
+        raf(function () {
+          _this2.multiLine = /^pre$/i.test(_this2.parentNode.nodeName);
+          _this2.contentEditable = _this2.multiLine;
+
+          _this2.render();
+        });
       },
       onfocus: function onfocus() {
         this.editing = true;
 
         if (hasCompanion(this)) {
           var currentTarget = this.nextElementSibling;
-          if (currentTarget.style.display != 'none') mouseover({
+          if (currentTarget.style.display != 'none') pointerover({
             currentTarget: currentTarget
           });
         }
       },
       onblur: function onblur() {
-        var _this = this;
+        var _this3 = this;
 
         this.editing = false;
 
@@ -143,33 +162,42 @@
           var style = this.nextElementSibling.style;
           style.opacity = 0;
           style.display = null;
-          requestAnimationFrame(function () {
-            return requestAnimationFrame(function () {
-              update(_this);
-              style.opacity = 1;
-            });
+          raf(function () {
+            update(_this3);
+            style.opacity = 1;
           });
         }
       },
-      onmouseout: function onmouseout() {
+      onkeydown: function onkeydown(event) {
+        if (event.keyCode == 83 && (event.metaKey || event.ctrlKey)) {
+          event.preventDefault();
+          this.dispatchEvent(new CustomEvent('controlSave'));
+        }
+      },
+      onpointerout: function onpointerout() {
         if (!this.editing) this.onblur();
       },
       onpaste: function onpaste(event) {
         event.preventDefault();
-        var selection = getSelection();
-
+        var paste = (event.clipboardData || clipboardData).getData('text');
+        if (paste.length) document.execCommand('insertText', null, paste);
+        /*
+        const selection = getSelection();
         if (selection.rangeCount) {
-          var paste = (event.clipboardData || clipboardData).getData('text');
+          const paste = (event.clipboardData || clipboardData).getData('text');
           selection.deleteFromDocument();
-          selection.getRangeAt(0).insertNode(document.createTextNode(paste.replace(/\r\n/g, '\n')));
+          selection.getRangeAt(0).insertNode(
+            document.createTextNode(paste.replace(/\r\n/g, '\n'))
+          );
           selection.collapseToEnd();
         }
+        */
       },
       render: function render() {
-        var _this2 = this;
+        var _this4 = this;
 
         loadHLJS.then(function () {
-          return update(_this2);
+          return update(_this4);
         });
       }
     });
