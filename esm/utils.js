@@ -66,5 +66,9 @@ export const update = self => {
       code.innerHTML = innerHTML.replace(/<div>/g, '\n').replace(/<[>]+>/g, '\n');
     code.className = `${props.lang} uce-highlight`;
     window.hljs.highlightBlock(code);
+    code.style.width = self.offsetWidth + 'px';
+    code.style.height = self.offsetHeight + 'px';
+    code.scrollTop = self.scrollTop;
+    code.scrollLeft = self.scrollLeft;
   }
 };

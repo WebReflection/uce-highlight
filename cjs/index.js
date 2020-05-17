@@ -21,7 +21,7 @@ customElements.whenDefined('uce-lib').then(() => {
     init() {
       if (!loadHLJS) {
         loadHLJS = (0, _utils.resolveHLJS)(this.props.theme);
-        (0, _ustyler.default)('*:not(pre)>code[is="uce-highlight"]{display:inline;}' + 'pre>code.uce-highlight{position:absolute;transform:translateY(-100%);}' + 'code.uce-highlight{transition:opacity .3s;}');
+        (0, _ustyler.default)('*:not(pre)>code[is="uce-highlight"]{display:inline;}' + 'pre>code.uce-highlight{position:absolute;transform:translateY(-100%);}' + 'code.uce-highlight{transition:opacity .3s;font-size:inherit;}');
       }
 
       this.multiLine = /^pre$/i.test(this.parentNode.nodeName);

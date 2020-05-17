@@ -22,7 +22,7 @@ customElements.whenDefined('uce-lib').then(() => {
         ustyler(
           '*:not(pre)>code[is="uce-highlight"]{display:inline;}' +
           'pre>code.uce-highlight{position:absolute;transform:translateY(-100%);}' +
-          'code.uce-highlight{transition:opacity .3s;}'
+          'code.uce-highlight{transition:opacity .3s;font-size:inherit;}'
         );
       }
       this.multiLine = /^pre$/i.test(this.parentNode.nodeName);

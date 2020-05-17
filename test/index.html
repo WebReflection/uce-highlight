@@ -12,7 +12,17 @@
     document.write('<script src="//unpkg.com/document-register-element"><\x2fscript>');
   </script>
   <script async src="//unpkg.com/uce"></script>
-  <script async src="../min.js"></script>
+  <script>
+  !function(s){
+    if (/^(?:localhost|[0-9.]+)$/.test(location.hostname)) {
+      s.type = 'module';
+      s.src = '../esm/index.js';
+    }
+    else
+      s.src = '//unpkg.com/uce-highlight';
+    document.head.appendChild(s);
+  }(document.createElement('script'));
+  </script>
   <style>
   *, *::before, *::after {
     box-sizing: border-box;
@@ -30,7 +40,7 @@
   main {
     font-family: sans-serif;
     margin: auto;
-    max-width: 800px;
+    max-width: 560px;
   }
   </style>
 </head>
