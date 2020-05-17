@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>uceHighlight</title>
+  <script>
+  if(this.customElements)
+    try{customElements.define('built-in',document.createElement('p').constructor,{'extends':'p'})}
+    catch(s){document.write('<script src="//unpkg.com/@ungap/custom-elements-builtin"><\x2fscript>')}
+  else
+    document.write('<script src="//unpkg.com/document-register-element"><\x2fscript>');
+  </script>
+  <script type="module" src="index.js"></script>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+  <p>
+    Some content with <code is="uce-highlight">var code = 123;</code> in it.
+  </p>
+  <pre><code is="uce-highlight" lang="javascript" theme="tomorrow-night">
+// whenever uce library is loaded
+customElements.whenDefined('uce-lib').then(() => {
+
+  // grab all utilities from the uce-lib Class
+  const {define, render, html, svg} = customElements.get('uce-lib');
+
+  // that's it: ready to go 🎉
+  define('my-component', {
+    init() {
+      console.log('this is awesome!');
+    }
+  });
+});
+</code></pre>
+  <p>
+    Some content
+  </p>
+</body>
+</html>
