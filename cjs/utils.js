@@ -12,9 +12,11 @@ const scrollSync = (a, b) => {
 };
 
 const pointerout = ({
-  currentTarget
+  currentTarget: {
+    style
+  }
 }) => {
-  currentTarget.style.opacity = 1;
+  if (style.opacity != 1) style.opacity = 1;
 };
 
 const hasCompanion = ({
@@ -49,9 +51,15 @@ exports.loadTheme = loadTheme;
 const pointerover = ({
   currentTarget
 }) => {
-  scrollSync(currentTarget.previousSibling, currentTarget);
-  currentTarget.addEventListener('transitionend', transitionend);
-  currentTarget.style.opacity = 0;
+  const {
+    style
+  } = currentTarget;
+
+  if (style.opacity != 0) {
+    scrollSync(currentTarget.previousSibling, currentTarget);
+    currentTarget.addEventListener('transitionend', transitionend);
+    style.opacity = 0;
+  }
 };
 
 exports.pointerover = pointerover;
@@ -105,8 +113,10 @@ const update = self => {
       code.textContent = textContent;
       code.addEventListener('pointerover', pointerover);
       code.addEventListener('pointerout', pointerout);
+      code.addEventListener('mouseover', pointerover);
+      code.addEventListener('mouseout', pointerout);
       self.parentNode.insertBefore(code, self.nextSibling);
-    } else code.innerHTML = innerHTML.replace(/<div>/g, '\n').replace(/<[>]+>/g, '\n');
+    } else code.innerHTML = innerHTML.replace(/<(?:div|p)>/g, '\n').replace(/<[>]+>/g, '\n');
 
     code.className = `${props.lang} uce-highlight`;
     window.hljs.highlightBlock(code);

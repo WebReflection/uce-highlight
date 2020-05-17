@@ -28,8 +28,8 @@
   };
 
   var pointerout = function pointerout(_ref) {
-    var currentTarget = _ref.currentTarget;
-    currentTarget.style.opacity = 1;
+    var style = _ref.currentTarget.style;
+    if (style.opacity != 1) style.opacity = 1;
   };
 
   var hasCompanion = function hasCompanion(_ref2) {
@@ -58,9 +58,13 @@
   };
   var pointerover = function pointerover(_ref3) {
     var currentTarget = _ref3.currentTarget;
-    scrollSync(currentTarget.previousSibling, currentTarget);
-    currentTarget.addEventListener('transitionend', transitionend);
-    currentTarget.style.opacity = 0;
+    var style = currentTarget.style;
+
+    if (style.opacity != 0) {
+      scrollSync(currentTarget.previousSibling, currentTarget);
+      currentTarget.addEventListener('transitionend', transitionend);
+      style.opacity = 0;
+    }
   };
   var raf = function raf(fn) {
     requestAnimationFrame(function () {
@@ -100,8 +104,10 @@
         code.textContent = textContent;
         code.addEventListener('pointerover', pointerover);
         code.addEventListener('pointerout', pointerout);
+        code.addEventListener('mouseover', pointerover);
+        code.addEventListener('mouseout', pointerout);
         self.parentNode.insertBefore(code, self.nextSibling);
-      } else code.innerHTML = innerHTML.replace(/<div>/g, '\n').replace(/<[>]+>/g, '\n');
+      } else code.innerHTML = innerHTML.replace(/<(?:div|p)>/g, '\n').replace(/<[>]+>/g, '\n');
 
       code.className = "".concat(props.lang, " uce-highlight");
       window.hljs.highlightBlock(code);
@@ -158,8 +164,9 @@
         this.editing = false;
 
         if (hasCompanion(this)) {
-          this.nextElementSibling.removeEventListener('transitionend', transitionend);
-          var style = this.nextElementSibling.style;
+          var nextElementSibling = this.nextElementSibling;
+          var style = nextElementSibling.style;
+          nextElementSibling.removeEventListener('transitionend', transitionend);
           style.opacity = 0;
           style.display = null;
           raf(function () {
@@ -174,6 +181,9 @@
           this.dispatchEvent(new CustomEvent('controlSave'));
         }
       },
+      onmouseout: function onmouseout() {
+        this.onpointerout();
+      },
       onpointerout: function onpointerout() {
         if (!this.editing) this.onblur();
       },
@@ -181,17 +191,6 @@
         event.preventDefault();
         var paste = (event.clipboardData || clipboardData).getData('text');
         if (paste.length) document.execCommand('insertText', null, paste);
-        /*
-        const selection = getSelection();
-        if (selection.rangeCount) {
-          const paste = (event.clipboardData || clipboardData).getData('text');
-          selection.deleteFromDocument();
-          selection.getRangeAt(0).insertNode(
-            document.createTextNode(paste.replace(/\r\n/g, '\n'))
-          );
-          selection.collapseToEnd();
-        }
-        */
       },
       render: function render() {
         var _this4 = this;

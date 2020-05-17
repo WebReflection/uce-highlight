@@ -46,10 +46,13 @@ customElements.whenDefined('uce-lib').then(() => {
       this.editing = false;
 
       if ((0, _utils.hasCompanion)(this)) {
-        this.nextElementSibling.removeEventListener('transitionend', _utils.transitionend);
+        const {
+          nextElementSibling
+        } = this;
         const {
           style
-        } = this.nextElementSibling;
+        } = nextElementSibling;
+        nextElementSibling.removeEventListener('transitionend', _utils.transitionend);
         style.opacity = 0;
         style.display = null;
         (0, _utils.raf)(() => {
@@ -66,6 +69,10 @@ customElements.whenDefined('uce-lib').then(() => {
       }
     },
 
+    onmouseout() {
+      this.onpointerout();
+    },
+
     onpointerout() {
       if (!this.editing) this.onblur();
     },
@@ -74,17 +81,6 @@ customElements.whenDefined('uce-lib').then(() => {
       event.preventDefault();
       const paste = (event.clipboardData || clipboardData).getData('text');
       if (paste.length) document.execCommand('insertText', null, paste);
-      /*
-      const selection = getSelection();
-      if (selection.rangeCount) {
-        const paste = (event.clipboardData || clipboardData).getData('text');
-        selection.deleteFromDocument();
-        selection.getRangeAt(0).insertNode(
-          document.createTextNode(paste.replace(/\r\n/g, '\n'))
-        );
-        selection.collapseToEnd();
-      }
-      */
     },
 
     render() {
