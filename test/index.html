@@ -11,18 +11,37 @@
   else
     document.write('<script src="//unpkg.com/document-register-element"><\x2fscript>');
   </script>
-  <script type="module" src="index.js"></script>
+  <script async src="//unpkg.com/uce"></script>
+  <script async src="../min.js"></script>
   <style>
-    *, *::before, *::after {
-      box-sizing: border-box;
-    }
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+  html {
+    background-color: #191919;
+    color: #f9f9f9;
+  }
+  h1 {
+    color: #aaa;
+  }
+  small {
+    font-size: small;
+  }
+  main {
+    font-family: sans-serif;
+    margin: auto;
+    max-width: 800px;
+  }
   </style>
 </head>
 <body>
-  <p>
-    Some content with <code is="uce-highlight">var code = 123;</code> in it.
-  </p>
-  <pre><code is="uce-highlight" lang="javascript" theme="tomorrow-night">
+  <main>
+    <h1>uce-highlight <small>(work in progress)</small></h1>
+    <hr>
+    <p>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam ut tellus eget nibh dictum volutpat a in orci. Fusce eget diam eu nibh iaculis fermentum. Nullam faucibus nisi leo. Cras mattis augue maximus neque facilisis, sit amet tincidunt quam aliquet. Praesent nec orci convallis, congue ex eu, congue mi. Proin pharetra metus quis dui posuere, vel feugiat purus vestibulum. <code is="uce-highlight">var code = 123;</code> Maecenas scelerisque volutpat lorem, sit amet scelerisque nunc efficitur quis. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Vivamus vulputate massa eget facilisis rhoncus.
+    </p>
+    <pre><code is="uce-highlight" lang="javascript" theme="tomorrow-night">
 // whenever uce library is loaded
 customElements.whenDefined('uce-lib').then(() => {
 
@@ -36,9 +55,57 @@ customElements.whenDefined('uce-lib').then(() => {
     }
   });
 });
-</code></pre>
-  <p>
-    Some content
-  </p>
+    </code></pre>
+    <p>
+      Aenean ac metus condimentum nisl consequat porta ut a ipsum. Nulla vulputate elit sit amet justo vulputate aliquam. Morbi pharetra lorem enim, a ultrices ex bibendum sed. Etiam at suscipit augue. Etiam lobortis odio ipsum, a eleifend velit condimentum quis. Phasellus convallis magna vehicula velit bibendum posuere. Mauris in tristique urna. Pellentesque pulvinar, ante vitae congue auctor, metus justo lacinia enim, sit amet varius sapien ipsum ut neque. Vivamus est ex, rhoncus nec finibus quis, dapibus sed lorem. Praesent dapibus felis sit amet orci aliquam fringilla. Nullam eleifend massa sagittis, imperdiet massa in, semper mauris. Ut imperdiet sem mauris, sed pulvinar diam vestibulum et. Proin laoreet libero eget ex tempus gravida. Donec eget lacinia urna. Etiam tristique id justo id varius. Quisque sed facilisis metus.
+    </p>
+    <pre><code is="uce-highlight" lang="javascript" theme="tomorrow-night">
+import ustyler from 'ustyler';
+
+import {
+  hasCompanion, loadTheme, resolveHLJS, update,
+  mouseover, transitionend
+} from './utils.js';
+
+customElements.whenDefined('uce-lib').then(() => {
+  const {define} = customElements.get('uce-lib');
+  let loadHLJS = null;
+  define('uce-highlight', {
+    extends: 'code',
+    observedAttributes: ['lang', 'theme'],
+    attributeChanged(name) {
+      if (name === 'theme')
+        loadTheme(this.props.theme);
+      this.render();
+    },
+    init() {
+      if (!loadHLJS) {
+        loadHLJS = resolveHLJS(this.props.theme);
+        ustyler(
+          '*:not(pre)>code[is="uce-highlight"]{display:inline;}' +
+          'pre>code.uce-highlight{position:absolute;transform:translateY(-100%);}' +
+          'code.uce-highlight{transition:opacity .3s;}'
+        );
+      }
+      this.multiLine = /^pre$/i.test(this.parentNode.nodeName);
+      this.contentEditable = this.multiLine;
+      this.render();
+    },
+    render() {
+      loadHLJS.then(() => update(this));
+    }
+  });
+});
+    </code></pre>
+    <p>
+      Sed posuere congue pharetra. Nunc eget nunc id est fermentum ullamcorper id et nunc. Nam at est eu lacus tincidunt aliquet porttitor quis erat. Fusce sit amet venenatis enim. Nunc molestie convallis velit. Maecenas euismod elementum risus nec vestibulum. Morbi lorem nisl, auctor bibendum consectetur eget, euismod pretium augue. Integer tincidunt enim sed orci mollis, sit amet euismod libero scelerisque. Aliquam et enim maximus, volutpat ipsum eu, luctus justo.
+    </p>
+    <p>
+      Aenean at velit eu sapien tincidunt fringilla ut sed sem. Duis a faucibus nibh, et volutpat nisl. Aenean non tristique diam, eu varius justo. Maecenas in aliquam risus. Proin sit amet sapien vehicula odio vulputate lacinia. Duis feugiat ligula id erat viverra, in suscipit neque aliquet. Duis vel felis tortor. Vestibulum congue diam tincidunt justo posuere, sit amet bibendum ligula ullamcorper. Quisque efficitur est eu ultricies commodo. Nulla nec scelerisque metus, quis aliquet sapien.
+    </p>
+    <p>
+      Phasellus interdum purus erat, in vestibulum sapien dictum vel. Sed sagittis posuere sodales. Integer est purus, consectetur quis tempor nec, convallis quis ex. Suspendisse ultrices lacus in posuere feugiat. Etiam ipsum purus, dictum at dolor in, tempor maximus diam. Sed vitae hendrerit turpis. Nullam in scelerisque neque, ut vulputate augue. Nulla pulvinar aliquet arcu at elementum. Aliquam erat volutpat. Etiam auctor finibus tempus. Curabitur ac porttitor lectus. In tortor quam, malesuada ut justo ac, bibendum dignissim augue. Nunc molestie quam vitae augue ultricies, ut condimentum urna accumsan.
+    </p>
+  </main>
 </body>
 </html>
