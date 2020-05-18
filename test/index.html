@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>uceHighlight</title>
+  <title>uce highlight</title>
+  <link rel="stylesheet" href="https://newcss.net/new.min.css">
   <script>
   if(this.customElements)
     try{customElements.define('built-in',document.createElement('p').constructor,{'extends':'p'})}
@@ -24,30 +25,9 @@
   }(document.createElement('script'));
   </script>
   <style>
-  *, *::before, *::after {
-    box-sizing: border-box;
-  }
-  html {
-    background-color: #191919;
-    color: #f9f9f9;
-    line-height: 1.3em;
-  }
-  h1 {
-    color: #aaa;
-  }
   main {
-    font-family: sans-serif;
     margin: auto;
-    max-width: 560px;
-  }
-  pre {
-    line-height: initial;
-    overflow-x: auto;
-    font-size: 13px;
-  }
-  pre > code {
-    display: inline-block;
-    padding: .5em;
+    max-width: 620px;
   }
   </style>
 </head>
@@ -56,7 +36,7 @@
     <h1>uce-highlight</h1>
     <hr>
     <p>
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam ut tellus eget nibh dictum volutpat a in orci. Fusce eget diam eu nibh iaculis fermentum. Nullam faucibus nisi leo. Cras mattis augue maximus neque facilisis, sit amet tincidunt quam aliquet. Praesent nec orci convallis, congue ex eu, congue mi. Proin pharetra metus quis dui posuere, vel feugiat purus vestibulum. <code is="uce-highlight">var code = 123;</code> Maecenas scelerisque volutpat lorem, sit amet scelerisque nunc efficitur quis. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Vivamus vulputate massa eget facilisis rhoncus.
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam ut tellus eget nibh dictum volutpat a in orci. Fusce eget diam eu nibh iaculis fermentum. Nullam faucibus nisi leo. Cras mattis augue maximus neque facilisis, sit amet tincidunt quam aliquet. Praesent nec orci convallis, congue ex eu, congue mi. Proin pharetra metus quis dui posuere, vel feugiat purus vestibulum. <code>var code = 123;</code> Maecenas scelerisque volutpat lorem, sit amet scelerisque nunc efficitur quis. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Vivamus vulputate massa eget facilisis rhoncus.
     </p>
     <pre><code is="uce-highlight" lang="javascript" theme="tomorrow-night" spellcheck="false">
 // whenever uce library is loaded
@@ -74,9 +54,9 @@ customElements.whenDefined('uce-lib').then(() => {
 });
     </code></pre>
     <p>
-      Aenean ac metus condimentum nisl consequat porta ut a ipsum. Nulla vulputate elit sit amet justo vulputate aliquam. Morbi pharetra lorem enim, a ultrices ex bibendum sed. Etiam at suscipit augue. Etiam lobortis odio ipsum, a eleifend velit condimentum quis. Phasellus convallis magna vehicula velit bibendum posuere. Mauris in tristique urna. Pellentesque pulvinar, ante vitae congue auctor, metus justo lacinia enim, sit amet varius sapien ipsum ut neque. Vivamus est ex, rhoncus nec finibus quis, dapibus sed lorem. Praesent dapibus felis sit amet orci aliquam fringilla. Nullam eleifend massa sagittis, imperdiet massa in, semper mauris. Ut imperdiet sem mauris, sed pulvinar diam vestibulum et. Proin laoreet libero eget ex tempus gravida. Donec eget lacinia urna. Etiam tristique id justo id varius. Quisque sed facilisis metus.
+      Aenean ac metus condimentum nisl consequat porta ut a ipsum. Nulla vulputate elit sit amet justo vulputate aliquam. Morbi pharetra lorem enim, a ultrices ex bibendum sed. Etiam at suscipit augue. Etiam lobortis odio ipsum, a eleifend velit condimentum quis. Phasellus convallis magna vehicula velit bibendum posuere. Mauris in tristique urna. Pellentesque pulvinar, ante vitae congue auctor, metus justo lacinia enim, sit amet varius sapien ipsum ut neque. Vivamus est ex, rhoncus nec finibus quis, dapibus sed lorem. Praesent dapibus felis sit amet orci aliquam fringilla. Nullam eleifend massa sagittis, imperdiet massa in, semper mauris. Ut imperdiet sem mauris, sed pulvinar diam vestibulum et. <code is="uce-highlight">var code = 123;</code> Proin laoreet libero eget ex tempus gravida. Donec eget lacinia urna. Etiam tristique id justo id varius. Quisque sed facilisis metus.
     </p>
-    <pre><code is="uce-highlight" lang="javascript" theme="tomorrow-night" spellcheck="false">
+    <pre><code is="uce-highlight" lang="javascript" spellcheck="false">
 import ustyler from 'ustyler';
 
 import {

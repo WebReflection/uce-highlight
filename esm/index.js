@@ -20,9 +20,10 @@ customElements.whenDefined('uce-lib').then(() => {
         const ucehl = 'uce-highlight';
         ustyler(
           `*:not(pre)>code[is="${ucehl}"]{display:inline}` +
-          `pre.${ucehl}{position:relative}` +
+          `pre.${ucehl}>*{box-sizing:border-box}` +
+          `pre.${ucehl}{overflow:hidden;padding:0;position:relative}` +
           `pre.${ucehl}>.${ucehl}{position:absolute}` +
-          `pre.${ucehl}>code.${ucehl}{top:0;left:0;width:100%;pointer-events:none}` +
+          `pre.${ucehl}>code.${ucehl}{overflow:hidden;top:0;left:0;width:100%;pointer-events:none}` +
           `select.${ucehl}{top:1px;right:1px;border:0}` +
           `select.${ucehl}:not(:focus):not(:hover){opacity:.5}` +
           `[dir="rtl"] select.${ucehl}{left:1px;right:auto !important}` +
