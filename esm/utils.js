@@ -1,9 +1,5 @@
 const CDN = '//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3';
 
-export const hasCompanion = ({nextElementSibling}) =>
-                        !!nextElementSibling &&
-                        nextElementSibling.classList.contains('uce-highlight');
-
 // list of themes in the CSS section
 // https://cdnjs.com/libraries/highlight.js
 // just pass the theme name: /style/{{name}}.min.css
@@ -54,39 +50,3 @@ export const resolveHLJS = theme => new Promise($ => {
     document.head.appendChild(script);
   }
 });
-
-export const scrollSync = (a, b) => {
-  a.scrollTop = b.scrollTop;
-  a.scrollLeft = b.scrollLeft;
-};
-
-export const update = (self, {node}) => {
-  if (self.multiLine) {
-    let code = self.nextElementSibling;
-    if (!hasCompanion(self)) {
-      const langs = hljs.listLanguages();
-      const select = node`<select class="hljs uce-highlight" onchange=${
-        ({currentTarget}) => {
-          self.setAttribute('lang', currentTarget.value);
-        }
-      }>${langs.map(
-        lang => node`<option value=${lang}>${lang}</option>`
-      )}</select>`;
-      const index = langs.indexOf(self.props.lang);
-      select.selectedIndex = index < 0 ? langs.indexOf('plaintext') : index;
-      self.parentNode.insertBefore(select, self.nextSibling);
-      code = node`<code></code>`;
-      const {style} = code
-      style.opacity = 0;
-      if (!self.editing)
-        raf(() => style.opacity = 1);
-      self.parentNode.insertBefore(code, select);
-    }
-    code.className = `${self.props.lang || 'plaintext'} uce-highlight`;
-    code.innerHTML = self.innerHTML
-                          .replace(/<(?:div|p)>/g, '\n')
-                          .replace(/<[^>]+?>/g, '');
-    window.hljs.highlightBlock(code);
-    scrollSync(code, self);
-  }
-};

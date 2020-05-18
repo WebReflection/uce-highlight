@@ -16,7 +16,7 @@ customElements.whenDefined('uce-lib').then(() => {
 
     attributeChanged(name, _, val) {
       if (name === 'theme') (0, _utils.loadTheme)(val);
-      if ((0, _utils.hasCompanion)(this)) (0, _utils.raf)(() => this.render());
+      if (this._code) this.render();
     },
 
     init() {
@@ -26,27 +26,25 @@ customElements.whenDefined('uce-lib').then(() => {
         (0, _ustyler.default)(`*:not(pre)>code[is="${ucehl}"]{display:inline}` + `pre.${ucehl}{position:relative}` + `pre.${ucehl}>.${ucehl}{position:absolute}` + `pre.${ucehl}>code.${ucehl}{top:0;left:0;width:100%;pointer-events:none}` + `pre.${ucehl}>select.${ucehl}{top:1px;right:1px;border:0}` + `code.${ucehl}{transition:opacity .3s}`);
       }
 
-      this.classList.add('hljs');
-      this.multiLine = /^pre$/i.test(this.parentNode.nodeName);
+      const {
+        parentNode
+      } = this;
+      this.multiLine = /^pre$/i.test(parentNode.nodeName);
       this.contentEditable = this.multiLine;
-      if (this.multiLine) this.parentNode.classList.add('uce-highlight');
+      this._code = null;
+      if (this.multiLine) parentNode.classList.add('uce-highlight');
+      this.classList.add('hljs');
       this.render();
     },
 
     onfocus() {
       this.editing = true;
-      if ((0, _utils.hasCompanion)(this)) this.nextElementSibling.style.opacity = 0;
+      if (this._code) this._code.style.opacity = 0;
     },
 
     onblur() {
       this.editing = false;
-
-      if ((0, _utils.hasCompanion)(this)) {
-        (0, _utils.raf)(() => {
-          (0, _utils.update)(this, html);
-          this.nextElementSibling.style.opacity = 1;
-        });
-      }
+      if (this._code) this.render();
     },
 
     onkeydown(event) {
@@ -66,17 +64,53 @@ customElements.whenDefined('uce-lib').then(() => {
       if (paste.length) document.execCommand('insertText', null, paste);
     },
 
+    onchange({
+      currentTarget
+    }) {
+      this.setAttribute('lang', currentTarget.value);
+    },
+
     onscroll() {
-      this.onmousewheel();
+      this.scrollSync();
     },
 
     onmousewheel() {
-      if ((0, _utils.hasCompanion)(this)) (0, _utils.scrollSync)(this.nextElementSibling, this);
+      this.scrollSync();
+    },
+
+    scrollSync() {
+      if (this._code) {
+        this._code.scrollTop = this.scrollTop;
+        this._code.scrollLeft = this.scrollLeft;
+      }
     },
 
     render() {
-      loadHLJS.then(() => {
-        (0, _utils.update)(this, html);
+      if (this.multiLine) loadHLJS.then(() => {
+        const {
+          hljs
+        } = window;
+        let {
+          _code,
+          props
+        } = this;
+
+        if (!_code) {
+          const langs = hljs.listLanguages();
+          const select = html.node`<select class="hljs uce-highlight" onchange=${this}>${langs.map(lang => html.node`<option value=${lang}>${lang}</option>`)}</select>`;
+          const index = langs.indexOf(props.lang);
+          select.selectedIndex = index < 0 ? langs.indexOf('plaintext') : index;
+          this.parentNode.insertBefore(select, this.nextSibling);
+          this._code = _code = html.node`<code></code>`;
+          _code.style.opacity = 0;
+          this.parentNode.insertBefore(_code, select);
+        }
+
+        _code.className = `${props.lang || 'plaintext'} uce-highlight`;
+        _code.innerHTML = this.innerHTML.replace(/<(?:div|p)>/g, '\n').replace(/<[^>]+?>/g, '');
+        hljs.highlightBlock(_code);
+        this.scrollSync();
+        if (!this.editing) (0, _utils.raf)(() => _code.style.opacity = 1);
       });
     }
 

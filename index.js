@@ -1,6 +1,18 @@
 (function () {
   'use strict';
 
+  function _taggedTemplateLiteral(strings, raw) {
+    if (!raw) {
+      raw = strings.slice(0);
+    }
+
+    return Object.freeze(Object.defineProperties(strings, {
+      raw: {
+        value: Object.freeze(raw)
+      }
+    }));
+  }
+
   /**
    * Create, append, and return, a style node with the passed CSS content.
    * @param {string|string[]} template the CSS text or a template literal array.
@@ -20,53 +32,7 @@
     return document.head.appendChild(style);
   }
 
-  function _taggedTemplateLiteral(strings, raw) {
-    if (!raw) {
-      raw = strings.slice(0);
-    }
-
-    return Object.freeze(Object.defineProperties(strings, {
-      raw: {
-        value: Object.freeze(raw)
-      }
-    }));
-  }
-
-  function _templateObject3() {
-    var data = _taggedTemplateLiteral(["<code></code>"]);
-
-    _templateObject3 = function _templateObject3() {
-      return data;
-    };
-
-    return data;
-  }
-
-  function _templateObject2() {
-    var data = _taggedTemplateLiteral(["<option value=", ">", "</option>"]);
-
-    _templateObject2 = function _templateObject2() {
-      return data;
-    };
-
-    return data;
-  }
-
-  function _templateObject() {
-    var data = _taggedTemplateLiteral(["<select class=\"hljs uce-highlight\" onchange=", ">", "</select>"]);
-
-    _templateObject = function _templateObject() {
-      return data;
-    };
-
-    return data;
-  }
-
-  var CDN = '//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3';
-  var hasCompanion = function hasCompanion(_ref) {
-    var nextElementSibling = _ref.nextElementSibling;
-    return !!nextElementSibling && nextElementSibling.classList.contains('uce-highlight');
-  }; // list of themes in the CSS section
+  var CDN = '//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3'; // list of themes in the CSS section
   // https://cdnjs.com/libraries/highlight.js
   // just pass the theme name: /style/{{name}}.min.css
   // i.e. loadTheme('tomorrow-night')
@@ -112,44 +78,36 @@
       }
     });
   };
-  var scrollSync = function scrollSync(a, b) {
-    a.scrollTop = b.scrollTop;
-    a.scrollLeft = b.scrollLeft;
-  };
-  var update = function update(self, _ref2) {
-    var node = _ref2.node;
 
-    if (self.multiLine) {
-      var code = self.nextElementSibling;
+  function _templateObject3() {
+    var data = _taggedTemplateLiteral(["<code></code>"]);
 
-      if (!hasCompanion(self)) {
-        var langs = hljs.listLanguages();
-        var select = node(_templateObject(), function (_ref3) {
-          var currentTarget = _ref3.currentTarget;
-          self.setAttribute('lang', currentTarget.value);
-        }, langs.map(function (lang) {
-          return node(_templateObject2(), lang, lang);
-        }));
-        var index = langs.indexOf(self.props.lang);
-        select.selectedIndex = index < 0 ? langs.indexOf('plaintext') : index;
-        self.parentNode.insertBefore(select, self.nextSibling);
-        code = node(_templateObject3());
-        var _code = code,
-            style = _code.style;
-        style.opacity = 0;
-        if (!self.editing) raf(function () {
-          return style.opacity = 1;
-        });
-        self.parentNode.insertBefore(code, select);
-      }
+    _templateObject3 = function _templateObject3() {
+      return data;
+    };
 
-      code.className = "".concat(self.props.lang || 'plaintext', " uce-highlight");
-      code.innerHTML = self.innerHTML.replace(/<(?:div|p)>/g, '\n').replace(/<[^>]+?>/g, '');
-      window.hljs.highlightBlock(code);
-      scrollSync(code, self);
-    }
-  };
+    return data;
+  }
 
+  function _templateObject2() {
+    var data = _taggedTemplateLiteral(["<option value=", ">", "</option>"]);
+
+    _templateObject2 = function _templateObject2() {
+      return data;
+    };
+
+    return data;
+  }
+
+  function _templateObject() {
+    var data = _taggedTemplateLiteral(["<select class=\"hljs uce-highlight\" onchange=", ">", "</select>"]);
+
+    _templateObject = function _templateObject() {
+      return data;
+    };
+
+    return data;
+  }
   customElements.whenDefined('uce-lib').then(function () {
     var _customElements$get = customElements.get('uce-lib'),
         define = _customElements$get.define,
@@ -160,12 +118,8 @@
       "extends": 'code',
       observedAttributes: ['lang', 'theme'],
       attributeChanged: function attributeChanged(name, _, val) {
-        var _this = this;
-
         if (name === 'theme') loadTheme(val);
-        if (hasCompanion(this)) raf(function () {
-          return _this.render();
-        });
+        if (this._code) this.render();
       },
       init: function init() {
         if (!loadHLJS) {
@@ -174,27 +128,21 @@
           ustyler("*:not(pre)>code[is=\"".concat(ucehl, "\"]{display:inline}") + "pre.".concat(ucehl, "{position:relative}") + "pre.".concat(ucehl, ">.").concat(ucehl, "{position:absolute}") + "pre.".concat(ucehl, ">code.").concat(ucehl, "{top:0;left:0;width:100%;pointer-events:none}") + "pre.".concat(ucehl, ">select.").concat(ucehl, "{top:1px;right:1px;border:0}") + "code.".concat(ucehl, "{transition:opacity .3s}"));
         }
 
-        this.classList.add('hljs');
-        this.multiLine = /^pre$/i.test(this.parentNode.nodeName);
+        var parentNode = this.parentNode;
+        this.multiLine = /^pre$/i.test(parentNode.nodeName);
         this.contentEditable = this.multiLine;
-        if (this.multiLine) this.parentNode.classList.add('uce-highlight');
+        this._code = null;
+        if (this.multiLine) parentNode.classList.add('uce-highlight');
+        this.classList.add('hljs');
         this.render();
       },
       onfocus: function onfocus() {
         this.editing = true;
-        if (hasCompanion(this)) this.nextElementSibling.style.opacity = 0;
+        if (this._code) this._code.style.opacity = 0;
       },
       onblur: function onblur() {
-        var _this2 = this;
-
         this.editing = false;
-
-        if (hasCompanion(this)) {
-          raf(function () {
-            update(_this2, html);
-            _this2.nextElementSibling.style.opacity = 1;
-          });
-        }
+        if (this._code) this.render();
       },
       onkeydown: function onkeydown(event) {
         var ctrlKey = event.metaKey || event.ctrlKey;
@@ -211,17 +159,56 @@
         var paste = (event.clipboardData || clipboardData).getData('text');
         if (paste.length) document.execCommand('insertText', null, paste);
       },
+      onchange: function onchange(_ref) {
+        var currentTarget = _ref.currentTarget;
+        this.setAttribute('lang', currentTarget.value);
+      },
       onscroll: function onscroll() {
-        this.onmousewheel();
+        this.scrollSync();
       },
       onmousewheel: function onmousewheel() {
-        if (hasCompanion(this)) scrollSync(this.nextElementSibling, this);
+        this.scrollSync();
+      },
+      scrollSync: function scrollSync() {
+        if (this._code) {
+          this._code.scrollTop = this.scrollTop;
+          this._code.scrollLeft = this.scrollLeft;
+        }
       },
       render: function render() {
-        var _this3 = this;
+        var _this = this;
 
-        loadHLJS.then(function () {
-          update(_this3, html);
+        if (this.multiLine) loadHLJS.then(function () {
+          var _window = window,
+              hljs = _window.hljs;
+          var _code = _this._code,
+              props = _this.props;
+
+          if (!_code) {
+            var langs = hljs.listLanguages();
+            var select = html.node(_templateObject(), _this, langs.map(function (lang) {
+              return html.node(_templateObject2(), lang, lang);
+            }));
+            var index = langs.indexOf(props.lang);
+            select.selectedIndex = index < 0 ? langs.indexOf('plaintext') : index;
+
+            _this.parentNode.insertBefore(select, _this.nextSibling);
+
+            _this._code = _code = html.node(_templateObject3());
+            _code.style.opacity = 0;
+
+            _this.parentNode.insertBefore(_code, select);
+          }
+
+          _code.className = "".concat(props.lang || 'plaintext', " uce-highlight");
+          _code.innerHTML = _this.innerHTML.replace(/<(?:div|p)>/g, '\n').replace(/<[^>]+?>/g, '');
+          hljs.highlightBlock(_code);
+
+          _this.scrollSync();
+
+          if (!_this.editing) raf(function () {
+            return _code.style.opacity = 1;
+          });
         });
       }
     });
