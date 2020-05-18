@@ -1,6 +1,6 @@
 {
   "name": "uce-highlight",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A component that helps editing and highlighting code on a page.",
   "main": "./cjs/index.js",
   "scripts": {
