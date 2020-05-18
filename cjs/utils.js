@@ -141,11 +141,12 @@ const update = (self, {
       self.parentNode.insertBefore(code, select);
     }
 
-    code.className = `${self.props.lang} uce-highlight`;
+    code.className = `${self.props.lang || 'plaintext'} uce-highlight`;
     code.innerHTML = self.innerHTML.replace(/<(?:div|p)>/g, '\n').replace(/<[^>]+?>/g, '');
-    window.hljs.highlightBlock(code);
-    code.style.width = self.offsetWidth + 'px';
-    code.style.height = self.offsetHeight + 'px';
+    window.hljs.highlightBlock(code); // this is likely not needed
+    //code.style.width = self.offsetWidth + 'px';
+    //code.style.height = self.offsetHeight + 'px';
+
     scrollSync(code, self);
   }
 };

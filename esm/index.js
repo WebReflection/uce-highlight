@@ -25,7 +25,7 @@ customElements.whenDefined('uce-lib').then(() => {
           `*:not(pre)>code[is="${ucehl}"]{display:inline}` +
           `pre.${ucehl}{position:relative}` +
           `pre.${ucehl}>.${ucehl}{position:absolute}` +
-          `pre.${ucehl}>code.${ucehl}{top:0;left:0}` +
+          `pre.${ucehl}>code.${ucehl}{top:0;left:0;width:100%}` +
           `pre.${ucehl}>select.${ucehl}{top:1px;right:1px;border:0}` +
           `code.${ucehl}{transition:opacity .3s}`
         );

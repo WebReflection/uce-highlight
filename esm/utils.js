@@ -107,13 +107,14 @@ export const update = (self, {node}) => {
       }
       self.parentNode.insertBefore(code, select);
     }
-    code.className = `${self.props.lang} uce-highlight`;
+    code.className = `${self.props.lang || 'plaintext'} uce-highlight`;
     code.innerHTML = self.innerHTML
                           .replace(/<(?:div|p)>/g, '\n')
                           .replace(/<[^>]+?>/g, '');
     window.hljs.highlightBlock(code);
-    code.style.width = self.offsetWidth + 'px';
-    code.style.height = self.offsetHeight + 'px';
+    // this is likely not needed
+    //code.style.width = self.offsetWidth + 'px';
+    //code.style.height = self.offsetHeight + 'px';
     scrollSync(code, self);
   }
 };
