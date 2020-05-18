@@ -25,6 +25,7 @@ customElements.whenDefined('uce-lib').then(() => {
         ustyler(
           `*:not(pre)>code[is="${ucehl}"]{display:inline}` +
           `${pre}{${oh}padding:0;position:relative}` +
+          `${pre} p,${pre} div{padding:0;margin:0}` +
           `${pre}>*{box-sizing:border-box}` +
           `${pre}>.${ucehl}{position:absolute}` +
           `${pre}>${code}{${oh}top:0;left:0;width:100%;pointer-events:none}` +
@@ -54,7 +55,6 @@ customElements.whenDefined('uce-lib').then(() => {
         this.render();
     },
     onkeydown(event) {
-      event.stopPropagation();
       const ctrlKey = event.metaKey || event.ctrlKey;
       if (ctrlKey && event.keyCode == 83) {
         event.preventDefault();
@@ -63,7 +63,6 @@ customElements.whenDefined('uce-lib').then(() => {
     },
     onpaste(event) {
       event.preventDefault();
-      event.stopPropagation();
       const paste = (event.clipboardData || clipboardData).getData('text');
       if (paste.length)
         document.execCommand('insertText', null, paste);
