@@ -23,9 +23,10 @@ customElements.whenDefined('uce-lib').then(() => {
           `pre.${ucehl}{position:relative}` +
           `pre.${ucehl}>.${ucehl}{position:absolute}` +
           `pre.${ucehl}>code.${ucehl}{top:0;left:0;width:100%;pointer-events:none}` +
-          `pre.${ucehl}>select.${ucehl}{top:1px;right:1px;border:0}` +
+          `select.${ucehl}{top:1px;right:1px;border:0}` +
+          `select.${ucehl}:not(:focus):not(:hover){opacity:.5}` +
           `[dir="rtl"] select.${ucehl}{left:1px;right:auto !important}` +
-          `code.${ucehl}{transition:opacity .3s}`
+          `code.${ucehl},select.${ucehl}{transition:opacity .3s}`
         );
       }
       const {parentNode} = this;
