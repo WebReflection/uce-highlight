@@ -147,7 +147,8 @@
         if (!loadHLJS) {
           loadHLJS = resolveHLJS(this.props.theme);
           var ucehl = 'uce-highlight';
-          ustyler("*:not(pre)>code[is=\"".concat(ucehl, "\"]{display:inline}") + "pre.".concat(ucehl, ">*{box-sizing:border-box}") + "pre.".concat(ucehl, "{overflow:hidden;padding:0;position:relative}") + "pre.".concat(ucehl, ">.").concat(ucehl, "{position:absolute}") + "pre.".concat(ucehl, ">code.").concat(ucehl, "{overflow:hidden;top:0;left:0;width:100%;pointer-events:none}") + "select.".concat(ucehl, "{top:1px;right:1px;border:0}") + "select.".concat(ucehl, ":not(:focus):not(:hover){opacity:.5}") + "[dir=\"rtl\"] select.".concat(ucehl, "{left:1px;right:auto !important}") + "code.".concat(ucehl, ",select.").concat(ucehl, "{transition:opacity .3s}"));
+          var oh = 'overflow:hidden;';
+          ustyler("*:not(pre)>code[is=\"".concat(ucehl, "\"]{display:inline}") + "pre.".concat(ucehl, "{").concat(oh, "padding:0;position:relative}") + "pre.".concat(ucehl, ">*{box-sizing:border-box}") + "pre.".concat(ucehl, ">.").concat(ucehl, "{position:absolute}") + "pre.".concat(ucehl, ">code.").concat(ucehl, "{").concat(oh, "top:0;left:0;width:100%;pointer-events:none}") + "select.".concat(ucehl, "{top:1px;right:1px;border:0}") + "select.".concat(ucehl, ":not(:focus):not(:hover){opacity:.5}") + "[dir=\"rtl\"] select.".concat(ucehl, "{left:1px;right:auto}") + "code.".concat(ucehl, ",select.").concat(ucehl, "{transition:opacity .3s}"));
         }
 
         var parentNode = this.parentNode;
