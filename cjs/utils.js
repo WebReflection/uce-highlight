@@ -3,21 +3,8 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.update = exports.transitionend = exports.resolveHLJS = exports.raf = exports.pointerover = exports.loadTheme = exports.hasCompanion = void 0;
+exports.update = exports.scrollSync = exports.resolveHLJS = exports.raf = exports.loadTheme = exports.hasCompanion = void 0;
 const CDN = '//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3';
-
-const scrollSync = (a, b) => {
-  a.scrollTop = b.scrollTop;
-  a.scrollLeft = b.scrollLeft;
-};
-
-const pointerout = ({
-  currentTarget: {
-    style
-  }
-}) => {
-  if (style.opacity != 1) style.opacity = 1;
-};
 
 const hasCompanion = ({
   nextElementSibling
@@ -47,22 +34,6 @@ const loadTheme = theme => {
 };
 
 exports.loadTheme = loadTheme;
-
-const pointerover = ({
-  currentTarget
-}) => {
-  const {
-    style
-  } = currentTarget;
-
-  if (style.opacity != 0) {
-    scrollSync(currentTarget.previousSibling, currentTarget);
-    currentTarget.addEventListener('transitionend', transitionend);
-    style.opacity = 0;
-  }
-};
-
-exports.pointerover = pointerover;
 
 const raf = fn => {
   requestAnimationFrame(() => {
@@ -95,29 +66,17 @@ const resolveHLJS = theme => new Promise($ => {
 
 exports.resolveHLJS = resolveHLJS;
 
-const transitionend = ({
-  currentTarget: {
-    style
-  },
-  propertyName
-}) => {
-  if (propertyName === 'opacity' && style.opacity == 0) {
-    style.display = 'none';
-  }
+const scrollSync = (a, b) => {
+  a.scrollTop = b.scrollTop;
+  a.scrollLeft = b.scrollLeft;
 };
 
-exports.transitionend = transitionend;
+exports.scrollSync = scrollSync;
 
 const update = (self, {
   node
 }) => {
-  const {
-    classList,
-    multiLine
-  } = self;
-  classList.add('hljs');
-
-  if (multiLine) {
+  if (self.multiLine) {
     let code = self.nextElementSibling;
 
     if (!hasCompanion(self)) {
@@ -130,23 +89,18 @@ const update = (self, {
       const index = langs.indexOf(self.props.lang);
       select.selectedIndex = index < 0 ? langs.indexOf('plaintext') : index;
       self.parentNode.insertBefore(select, self.nextSibling);
-      code = node`<code onmouseover=${pointerover} onmouseout=${pointerout}></code>`;
+      code = node`<code></code>`;
       const {
         style
       } = code;
-      if (self.editing) style.display = 'none';else {
-        style.opacity = 0;
-        raf(() => style.opacity = 1);
-      }
+      style.opacity = 0;
+      if (!self.editing) raf(() => style.opacity = 1);
       self.parentNode.insertBefore(code, select);
     }
 
     code.className = `${self.props.lang || 'plaintext'} uce-highlight`;
     code.innerHTML = self.innerHTML.replace(/<(?:div|p)>/g, '\n').replace(/<[^>]+?>/g, '');
-    window.hljs.highlightBlock(code); // this is likely not needed
-    //code.style.width = self.offsetWidth + 'px';
-    //code.style.height = self.offsetHeight + 'px';
-
+    window.hljs.highlightBlock(code);
     scrollSync(code, self);
   }
 };

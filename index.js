@@ -33,7 +33,7 @@
   }
 
   function _templateObject3() {
-    var data = _taggedTemplateLiteral(["<code onmouseover=", " onmouseout=", "></code>"]);
+    var data = _taggedTemplateLiteral(["<code></code>"]);
 
     _templateObject3 = function _templateObject3() {
       return data;
@@ -63,19 +63,8 @@
   }
 
   var CDN = '//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3';
-
-  var scrollSync = function scrollSync(a, b) {
-    a.scrollTop = b.scrollTop;
-    a.scrollLeft = b.scrollLeft;
-  };
-
-  var pointerout = function pointerout(_ref) {
-    var style = _ref.currentTarget.style;
-    if (style.opacity != 1) style.opacity = 1;
-  };
-
-  var hasCompanion = function hasCompanion(_ref2) {
-    var nextElementSibling = _ref2.nextElementSibling;
+  var hasCompanion = function hasCompanion(_ref) {
+    var nextElementSibling = _ref.nextElementSibling;
     return !!nextElementSibling && nextElementSibling.classList.contains('uce-highlight');
   }; // list of themes in the CSS section
   // https://cdnjs.com/libraries/highlight.js
@@ -97,16 +86,6 @@
       if (live !== link && live.parentNode) live.parentNode.removeChild(live);
     });
     document.head.appendChild(link);
-  };
-  var pointerover = function pointerover(_ref3) {
-    var currentTarget = _ref3.currentTarget;
-    var style = currentTarget.style;
-
-    if (style.opacity != 0) {
-      scrollSync(currentTarget.previousSibling, currentTarget);
-      currentTarget.addEventListener('transitionend', transitionend);
-      style.opacity = 0;
-    }
   };
   var raf = function raf(fn) {
     requestAnimationFrame(function () {
@@ -133,27 +112,20 @@
       }
     });
   };
-  var transitionend = function transitionend(_ref4) {
-    var style = _ref4.currentTarget.style,
-        propertyName = _ref4.propertyName;
-
-    if (propertyName === 'opacity' && style.opacity == 0) {
-      style.display = 'none';
-    }
+  var scrollSync = function scrollSync(a, b) {
+    a.scrollTop = b.scrollTop;
+    a.scrollLeft = b.scrollLeft;
   };
-  var update = function update(self, _ref5) {
-    var node = _ref5.node;
-    var classList = self.classList,
-        multiLine = self.multiLine;
-    classList.add('hljs');
+  var update = function update(self, _ref2) {
+    var node = _ref2.node;
 
-    if (multiLine) {
+    if (self.multiLine) {
       var code = self.nextElementSibling;
 
       if (!hasCompanion(self)) {
         var langs = hljs.listLanguages();
-        var select = node(_templateObject(), function (_ref6) {
-          var currentTarget = _ref6.currentTarget;
+        var select = node(_templateObject(), function (_ref3) {
+          var currentTarget = _ref3.currentTarget;
           self.setAttribute('lang', currentTarget.value);
         }, langs.map(function (lang) {
           return node(_templateObject2(), lang, lang);
@@ -161,24 +133,19 @@
         var index = langs.indexOf(self.props.lang);
         select.selectedIndex = index < 0 ? langs.indexOf('plaintext') : index;
         self.parentNode.insertBefore(select, self.nextSibling);
-        code = node(_templateObject3(), pointerover, pointerout);
+        code = node(_templateObject3());
         var _code = code,
             style = _code.style;
-        if (self.editing) style.display = 'none';else {
-          style.opacity = 0;
-          raf(function () {
-            return style.opacity = 1;
-          });
-        }
+        style.opacity = 0;
+        if (!self.editing) raf(function () {
+          return style.opacity = 1;
+        });
         self.parentNode.insertBefore(code, select);
       }
 
       code.className = "".concat(self.props.lang || 'plaintext', " uce-highlight");
       code.innerHTML = self.innerHTML.replace(/<(?:div|p)>/g, '\n').replace(/<[^>]+?>/g, '');
-      window.hljs.highlightBlock(code); // this is likely not needed
-      //code.style.width = self.offsetWidth + 'px';
-      //code.style.height = self.offsetHeight + 'px';
-
+      window.hljs.highlightBlock(code);
       scrollSync(code, self);
     }
   };
@@ -204,9 +171,10 @@
         if (!loadHLJS) {
           loadHLJS = resolveHLJS(this.props.theme);
           var ucehl = 'uce-highlight';
-          ustyler("*:not(pre)>code[is=\"".concat(ucehl, "\"]{display:inline}") + "pre.".concat(ucehl, "{position:relative}") + "pre.".concat(ucehl, ">.").concat(ucehl, "{position:absolute}") + "pre.".concat(ucehl, ">code.").concat(ucehl, "{top:0;left:0;width:100%}") + "pre.".concat(ucehl, ">select.").concat(ucehl, "{top:1px;right:1px;border:0}") + "code.".concat(ucehl, "{transition:opacity .3s}"));
+          ustyler("*:not(pre)>code[is=\"".concat(ucehl, "\"]{display:inline}") + "pre.".concat(ucehl, "{position:relative}") + "pre.".concat(ucehl, ">.").concat(ucehl, "{position:absolute}") + "pre.".concat(ucehl, ">code.").concat(ucehl, "{top:0;left:0;width:100%;pointer-events:none}") + "pre.".concat(ucehl, ">select.").concat(ucehl, "{top:1px;right:1px;border:0}") + "code.".concat(ucehl, "{transition:opacity .3s}"));
         }
 
+        this.classList.add('hljs');
         this.multiLine = /^pre$/i.test(this.parentNode.nodeName);
         this.contentEditable = this.multiLine;
         if (this.multiLine) this.parentNode.classList.add('uce-highlight');
@@ -214,13 +182,7 @@
       },
       onfocus: function onfocus() {
         this.editing = true;
-
-        if (hasCompanion(this)) {
-          var currentTarget = this.nextElementSibling;
-          if (currentTarget.style.display != 'none') pointerover({
-            currentTarget: currentTarget
-          });
-        }
+        if (hasCompanion(this)) this.nextElementSibling.style.opacity = 0;
       },
       onblur: function onblur() {
         var _this2 = this;
@@ -228,14 +190,9 @@
         this.editing = false;
 
         if (hasCompanion(this)) {
-          var nextElementSibling = this.nextElementSibling;
-          var style = nextElementSibling.style;
-          nextElementSibling.removeEventListener('transitionend', transitionend);
-          style.opacity = 0;
-          style.display = null;
           raf(function () {
             update(_this2, html);
-            style.opacity = 1;
+            _this2.nextElementSibling.style.opacity = 1;
           });
         }
       },
@@ -249,16 +206,16 @@
           }));
         }
       },
-      onmouseout: function onmouseout() {
-        this.onpointerout();
-      },
-      onpointerout: function onpointerout() {
-        if (!this.editing) this.onblur();
-      },
       onpaste: function onpaste(event) {
         event.preventDefault();
         var paste = (event.clipboardData || clipboardData).getData('text');
         if (paste.length) document.execCommand('insertText', null, paste);
+      },
+      onscroll: function onscroll() {
+        this.onmousewheel();
+      },
+      onmousewheel: function onmousewheel() {
+        if (hasCompanion(this)) scrollSync(this.nextElementSibling, this);
       },
       render: function render() {
         var _this3 = this;
