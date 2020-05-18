@@ -21,7 +21,7 @@ const pointerout = ({
 
 const hasCompanion = ({
   nextElementSibling
-}) => nextElementSibling && nextElementSibling.classList.contains('uce-highlight'); // list of themes in the CSS section
+}) => !!nextElementSibling && nextElementSibling.classList.contains('uce-highlight'); // list of themes in the CSS section
 // https://cdnjs.com/libraries/highlight.js
 // just pass the theme name: /style/{{name}}.min.css
 // i.e. loadTheme('tomorrow-night')
@@ -72,13 +72,26 @@ const raf = fn => {
 
 exports.raf = raf;
 
-const resolveHLJS = theme => Promise.resolve(window.hljs || new Promise($ => {
-  const script = document.createElement('script');
-  script.src = CDN + '/highlight.min.js';
-  script.onload = $;
-  document.head.appendChild(script);
-  loadTheme(theme || 'default');
-}));
+const resolveHLJS = theme => new Promise($ => {
+  const t = theme || 'default';
+  if (window.hljs) [].some.call(document.querySelectorAll('link'), link => {
+    const {
+      rel,
+      href
+    } = link;
+
+    if (/stylesheet/i.test(rel) && /\/highlight\.js\//.test(href)) {
+      themeCache.set(t, link);
+      return true;
+    }
+  });else {
+    loadTheme(t);
+    const script = document.createElement('script');
+    script.src = CDN + '/highlight.min.js';
+    script.onload = $;
+    document.head.appendChild(script);
+  }
+});
 
 exports.resolveHLJS = resolveHLJS;
 
@@ -95,30 +108,41 @@ const transitionend = ({
 
 exports.transitionend = transitionend;
 
-const update = self => {
+const update = (self, {
+  node
+}) => {
   const {
-    multiLine,
-    nextElementSibling,
-    props,
-    innerHTML,
-    textContent
+    classList,
+    multiLine
   } = self;
-  self.classList.add('hljs');
+  classList.add('hljs');
 
   if (multiLine) {
-    let code = nextElementSibling;
+    let code = self.nextElementSibling;
 
     if (!hasCompanion(self)) {
-      code = document.createElement('code');
-      code.textContent = textContent;
-      code.addEventListener('pointerover', pointerover);
-      code.addEventListener('pointerout', pointerout);
-      code.addEventListener('mouseover', pointerover);
-      code.addEventListener('mouseout', pointerout);
-      self.parentNode.insertBefore(code, self.nextSibling);
-    } else code.innerHTML = innerHTML.replace(/<(?:div|p)>/g, '\n').replace(/<[>]+>/g, '\n');
+      const langs = hljs.listLanguages();
+      const select = node`<select class="hljs uce-highlight" onchange=${({
+        currentTarget
+      }) => {
+        self.setAttribute('lang', currentTarget.value);
+      }}>${langs.map(lang => node`<option value=${lang}>${lang}</option>`)}</select>`;
+      const index = langs.indexOf(self.props.lang);
+      select.selectedIndex = index < 0 ? langs.indexOf('plaintext') : index;
+      self.parentNode.insertBefore(select, self.nextSibling);
+      code = node`<code onmouseover=${pointerover} onmouseout=${pointerout}></code>`;
+      const {
+        style
+      } = code;
+      if (self.editing) style.display = 'none';else {
+        style.opacity = 0;
+        raf(() => style.opacity = 1);
+      }
+      self.parentNode.insertBefore(code, select);
+    }
 
-    code.className = `${props.lang} uce-highlight`;
+    code.className = `${self.props.lang} uce-highlight`;
+    code.innerHTML = self.innerHTML.replace(/<(?:div|p)>/g, '\n').replace(/<[^>]+?>/g, '');
     window.hljs.highlightBlock(code);
     code.style.width = self.offsetWidth + 'px';
     code.style.height = self.offsetHeight + 'px';

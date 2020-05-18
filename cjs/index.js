@@ -6,29 +6,30 @@ var _utils = require("./utils.js");
 
 customElements.whenDefined('uce-lib').then(() => {
   const {
-    define
+    define,
+    html
   } = customElements.get('uce-lib');
   let loadHLJS = null;
   define('uce-highlight', {
     extends: 'code',
     observedAttributes: ['lang', 'theme'],
 
-    attributeChanged(name) {
-      if (name === 'theme') (0, _utils.loadTheme)(this.props.theme);
+    attributeChanged(name, _, val) {
+      if (name === 'theme') (0, _utils.loadTheme)(val);
       if ((0, _utils.hasCompanion)(this)) (0, _utils.raf)(() => this.render());
     },
 
     init() {
       if (!loadHLJS) {
         loadHLJS = (0, _utils.resolveHLJS)(this.props.theme);
-        (0, _ustyler.default)('*:not(pre)>code[is="uce-highlight"]{display:inline;}' + 'pre>code.uce-highlight{position:absolute;transform:translateY(-100%);}' + 'code.uce-highlight{transition:opacity .3s;font-size:inherit;}');
+        const ucehl = 'uce-highlight';
+        (0, _ustyler.default)(`*:not(pre)>code[is="${ucehl}"]{display:inline}` + `pre.${ucehl}{position:relative}` + `pre.${ucehl}>.${ucehl}{position:absolute}` + `pre.${ucehl}>code.${ucehl}{top:0;left:0}` + `pre.${ucehl}>select.${ucehl}{top:1px;right:1px;border:0}` + `code.${ucehl}{transition:opacity .3s}`);
       }
 
-      (0, _utils.raf)(() => {
-        this.multiLine = /^pre$/i.test(this.parentNode.nodeName);
-        this.contentEditable = this.multiLine;
-        this.render();
-      });
+      this.multiLine = /^pre$/i.test(this.parentNode.nodeName);
+      this.contentEditable = this.multiLine;
+      if (this.multiLine) this.parentNode.classList.add('uce-highlight');
+      this.render();
     },
 
     onfocus() {
@@ -56,16 +57,20 @@ customElements.whenDefined('uce-lib').then(() => {
         style.opacity = 0;
         style.display = null;
         (0, _utils.raf)(() => {
-          (0, _utils.update)(this);
+          (0, _utils.update)(this, html);
           style.opacity = 1;
         });
       }
     },
 
     onkeydown(event) {
-      if (event.keyCode == 83 && (event.metaKey || event.ctrlKey)) {
+      const ctrlKey = event.metaKey || event.ctrlKey;
+
+      if (ctrlKey && event.keyCode == 83) {
         event.preventDefault();
-        this.dispatchEvent(new CustomEvent('controlSave'));
+        this.dispatchEvent(new CustomEvent('controlSave', {
+          bubbles: true
+        }));
       }
     },
 
@@ -84,7 +89,9 @@ customElements.whenDefined('uce-lib').then(() => {
     },
 
     render() {
-      loadHLJS.then(() => (0, _utils.update)(this));
+      loadHLJS.then(() => {
+        (0, _utils.update)(this, html);
+      });
     }
 
   });

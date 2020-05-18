@@ -20,6 +20,48 @@
     return document.head.appendChild(style);
   }
 
+  function _taggedTemplateLiteral(strings, raw) {
+    if (!raw) {
+      raw = strings.slice(0);
+    }
+
+    return Object.freeze(Object.defineProperties(strings, {
+      raw: {
+        value: Object.freeze(raw)
+      }
+    }));
+  }
+
+  function _templateObject3() {
+    var data = _taggedTemplateLiteral(["<code onmouseover=", " onmouseout=", "></code>"]);
+
+    _templateObject3 = function _templateObject3() {
+      return data;
+    };
+
+    return data;
+  }
+
+  function _templateObject2() {
+    var data = _taggedTemplateLiteral(["<option value=", ">", "</option>"]);
+
+    _templateObject2 = function _templateObject2() {
+      return data;
+    };
+
+    return data;
+  }
+
+  function _templateObject() {
+    var data = _taggedTemplateLiteral(["<select class=\"hljs uce-highlight\" onchange=", ">", "</select>"]);
+
+    _templateObject = function _templateObject() {
+      return data;
+    };
+
+    return data;
+  }
+
   var CDN = '//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3';
 
   var scrollSync = function scrollSync(a, b) {
@@ -34,7 +76,7 @@
 
   var hasCompanion = function hasCompanion(_ref2) {
     var nextElementSibling = _ref2.nextElementSibling;
-    return nextElementSibling && nextElementSibling.classList.contains('uce-highlight');
+    return !!nextElementSibling && nextElementSibling.classList.contains('uce-highlight');
   }; // list of themes in the CSS section
   // https://cdnjs.com/libraries/highlight.js
   // just pass the theme name: /style/{{name}}.min.css
@@ -72,13 +114,24 @@
     });
   };
   var resolveHLJS = function resolveHLJS(theme) {
-    return Promise.resolve(window.hljs || new Promise(function ($) {
-      var script = document.createElement('script');
-      script.src = CDN + '/highlight.min.js';
-      script.onload = $;
-      document.head.appendChild(script);
-      loadTheme(theme || 'default');
-    }));
+    return new Promise(function ($) {
+      var t = theme || 'default';
+      if (window.hljs) [].some.call(document.querySelectorAll('link'), function (link) {
+        var rel = link.rel,
+            href = link.href;
+
+        if (/stylesheet/i.test(rel) && /\/highlight\.js\//.test(href)) {
+          themeCache.set(t, link);
+          return true;
+        }
+      });else {
+        loadTheme(t);
+        var script = document.createElement('script');
+        script.src = CDN + '/highlight.min.js';
+        script.onload = $;
+        document.head.appendChild(script);
+      }
+    });
   };
   var transitionend = function transitionend(_ref4) {
     var style = _ref4.currentTarget.style,
@@ -88,28 +141,40 @@
       style.display = 'none';
     }
   };
-  var update = function update(self) {
-    var multiLine = self.multiLine,
-        nextElementSibling = self.nextElementSibling,
-        props = self.props,
-        innerHTML = self.innerHTML,
-        textContent = self.textContent;
-    self.classList.add('hljs');
+  var update = function update(self, _ref5) {
+    var node = _ref5.node;
+    var classList = self.classList,
+        multiLine = self.multiLine;
+    classList.add('hljs');
 
     if (multiLine) {
-      var code = nextElementSibling;
+      var code = self.nextElementSibling;
 
       if (!hasCompanion(self)) {
-        code = document.createElement('code');
-        code.textContent = textContent;
-        code.addEventListener('pointerover', pointerover);
-        code.addEventListener('pointerout', pointerout);
-        code.addEventListener('mouseover', pointerover);
-        code.addEventListener('mouseout', pointerout);
-        self.parentNode.insertBefore(code, self.nextSibling);
-      } else code.innerHTML = innerHTML.replace(/<(?:div|p)>/g, '\n').replace(/<[>]+>/g, '\n');
+        var langs = hljs.listLanguages();
+        var select = node(_templateObject(), function (_ref6) {
+          var currentTarget = _ref6.currentTarget;
+          self.setAttribute('lang', currentTarget.value);
+        }, langs.map(function (lang) {
+          return node(_templateObject2(), lang, lang);
+        }));
+        var index = langs.indexOf(self.props.lang);
+        select.selectedIndex = index < 0 ? langs.indexOf('plaintext') : index;
+        self.parentNode.insertBefore(select, self.nextSibling);
+        code = node(_templateObject3(), pointerover, pointerout);
+        var _code = code,
+            style = _code.style;
+        if (self.editing) style.display = 'none';else {
+          style.opacity = 0;
+          raf(function () {
+            return style.opacity = 1;
+          });
+        }
+        self.parentNode.insertBefore(code, select);
+      }
 
-      code.className = "".concat(props.lang, " uce-highlight");
+      code.className = "".concat(self.props.lang, " uce-highlight");
+      code.innerHTML = self.innerHTML.replace(/<(?:div|p)>/g, '\n').replace(/<[^>]+?>/g, '');
       window.hljs.highlightBlock(code);
       code.style.width = self.offsetWidth + 'px';
       code.style.height = self.offsetHeight + 'px';
@@ -119,34 +184,32 @@
 
   customElements.whenDefined('uce-lib').then(function () {
     var _customElements$get = customElements.get('uce-lib'),
-        define = _customElements$get.define;
+        define = _customElements$get.define,
+        html = _customElements$get.html;
 
     var loadHLJS = null;
     define('uce-highlight', {
       "extends": 'code',
       observedAttributes: ['lang', 'theme'],
-      attributeChanged: function attributeChanged(name) {
+      attributeChanged: function attributeChanged(name, _, val) {
         var _this = this;
 
-        if (name === 'theme') loadTheme(this.props.theme);
+        if (name === 'theme') loadTheme(val);
         if (hasCompanion(this)) raf(function () {
           return _this.render();
         });
       },
       init: function init() {
-        var _this2 = this;
-
         if (!loadHLJS) {
           loadHLJS = resolveHLJS(this.props.theme);
-          ustyler('*:not(pre)>code[is="uce-highlight"]{display:inline;}' + 'pre>code.uce-highlight{position:absolute;transform:translateY(-100%);}' + 'code.uce-highlight{transition:opacity .3s;font-size:inherit;}');
+          var ucehl = 'uce-highlight';
+          ustyler("*:not(pre)>code[is=\"".concat(ucehl, "\"]{display:inline}") + "pre.".concat(ucehl, "{position:relative}") + "pre.".concat(ucehl, ">.").concat(ucehl, "{position:absolute}") + "pre.".concat(ucehl, ">code.").concat(ucehl, "{top:0;left:0}") + "pre.".concat(ucehl, ">select.").concat(ucehl, "{top:1px;right:1px;border:0}") + "code.".concat(ucehl, "{transition:opacity .3s}"));
         }
 
-        raf(function () {
-          _this2.multiLine = /^pre$/i.test(_this2.parentNode.nodeName);
-          _this2.contentEditable = _this2.multiLine;
-
-          _this2.render();
-        });
+        this.multiLine = /^pre$/i.test(this.parentNode.nodeName);
+        this.contentEditable = this.multiLine;
+        if (this.multiLine) this.parentNode.classList.add('uce-highlight');
+        this.render();
       },
       onfocus: function onfocus() {
         this.editing = true;
@@ -159,7 +222,7 @@
         }
       },
       onblur: function onblur() {
-        var _this3 = this;
+        var _this2 = this;
 
         this.editing = false;
 
@@ -170,15 +233,19 @@
           style.opacity = 0;
           style.display = null;
           raf(function () {
-            update(_this3);
+            update(_this2, html);
             style.opacity = 1;
           });
         }
       },
       onkeydown: function onkeydown(event) {
-        if (event.keyCode == 83 && (event.metaKey || event.ctrlKey)) {
+        var ctrlKey = event.metaKey || event.ctrlKey;
+
+        if (ctrlKey && event.keyCode == 83) {
           event.preventDefault();
-          this.dispatchEvent(new CustomEvent('controlSave'));
+          this.dispatchEvent(new CustomEvent('controlSave', {
+            bubbles: true
+          }));
         }
       },
       onmouseout: function onmouseout() {
@@ -193,10 +260,10 @@
         if (paste.length) document.execCommand('insertText', null, paste);
       },
       render: function render() {
-        var _this4 = this;
+        var _this3 = this;
 
         loadHLJS.then(function () {
-          return update(_this4);
+          update(_this3, html);
         });
       }
     });

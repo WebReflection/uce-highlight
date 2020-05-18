@@ -6,31 +6,35 @@ import {
 } from './utils.js';
 
 customElements.whenDefined('uce-lib').then(() => {
-  const {define} = customElements.get('uce-lib');
+  const {define, html} = customElements.get('uce-lib');
   let loadHLJS = null;
   define('uce-highlight', {
     extends: 'code',
     observedAttributes: ['lang', 'theme'],
-    attributeChanged(name) {
+    attributeChanged(name, _, val) {
       if (name === 'theme')
-        loadTheme(this.props.theme);
+        loadTheme(val);
       if (hasCompanion(this))
         raf(() => this.render());
     },
     init() {
       if (!loadHLJS) {
         loadHLJS = resolveHLJS(this.props.theme);
+        const ucehl = 'uce-highlight';
         ustyler(
-          '*:not(pre)>code[is="uce-highlight"]{display:inline;}' +
-          'pre>code.uce-highlight{position:absolute;transform:translateY(-100%);}' +
-          'code.uce-highlight{transition:opacity .3s;font-size:inherit;}'
+          `*:not(pre)>code[is="${ucehl}"]{display:inline}` +
+          `pre.${ucehl}{position:relative}` +
+          `pre.${ucehl}>.${ucehl}{position:absolute}` +
+          `pre.${ucehl}>code.${ucehl}{top:0;left:0}` +
+          `pre.${ucehl}>select.${ucehl}{top:1px;right:1px;border:0}` +
+          `code.${ucehl}{transition:opacity .3s}`
         );
       }
-      raf(() => {
-        this.multiLine = /^pre$/i.test(this.parentNode.nodeName);
-        this.contentEditable = this.multiLine;
-        this.render();
-      });
+      this.multiLine = /^pre$/i.test(this.parentNode.nodeName);
+      this.contentEditable = this.multiLine;
+      if (this.multiLine)
+        this.parentNode.classList.add('uce-highlight');
+      this.render();
     },
     onfocus() {
       this.editing = true;
@@ -49,15 +53,16 @@ customElements.whenDefined('uce-lib').then(() => {
         style.opacity = 0;
         style.display = null;
         raf(() => {
-          update(this);
+          update(this, html);
           style.opacity = 1;
         });
       }
     },
     onkeydown(event) {
-      if (event.keyCode == 83 && (event.metaKey || event.ctrlKey)) {
+      const ctrlKey = event.metaKey || event.ctrlKey;
+      if (ctrlKey && event.keyCode == 83) {
         event.preventDefault();
-        this.dispatchEvent(new CustomEvent('controlSave'));
+        this.dispatchEvent(new CustomEvent('controlSave', {bubbles: true}));
       }
     },
     onmouseout() {
@@ -74,7 +79,9 @@ customElements.whenDefined('uce-lib').then(() => {
         document.execCommand('insertText', null, paste);
     },
     render() {
-      loadHLJS.then(() => update(this));
+      loadHLJS.then(() => {
+        update(this, html);
+      });
     }
   });
 });
