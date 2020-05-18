@@ -171,6 +171,7 @@
         if (this._code) this.render();
       },
       onkeydown: function onkeydown(event) {
+        event.stopPropagation();
         var ctrlKey = event.metaKey || event.ctrlKey;
 
         if (ctrlKey && event.keyCode == 83) {
@@ -182,6 +183,7 @@
       },
       onpaste: function onpaste(event) {
         event.preventDefault();
+        event.stopPropagation();
         var paste = (event.clipboardData || clipboardData).getData('text');
         if (paste.length) document.execCommand('insertText', null, paste);
       },
@@ -227,7 +229,10 @@
           }
 
           _code.className = "".concat(props.lang || 'plaintext', " uce-highlight");
-          _code.innerHTML = _this.innerHTML.replace(/<(?:div|p)>/g, '\n').replace(/<[^>]+?>/g, '');
+
+          var clean = _this.innerHTML.replace(/<(?:div|p).*?>/g, '\n').replace(/<[^>]+?>/g, '');
+
+          _code.innerHTML = _this.innerHTML = clean;
           hljs.highlightBlock(_code);
 
           _this.scrollSync();

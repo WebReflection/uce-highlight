@@ -54,6 +54,7 @@ customElements.whenDefined('uce-lib').then(() => {
         this.render();
     },
     onkeydown(event) {
+      event.stopPropagation();
       const ctrlKey = event.metaKey || event.ctrlKey;
       if (ctrlKey && event.keyCode == 83) {
         event.preventDefault();
@@ -62,6 +63,7 @@ customElements.whenDefined('uce-lib').then(() => {
     },
     onpaste(event) {
       event.preventDefault();
+      event.stopPropagation();
       const paste = (event.clipboardData || clipboardData).getData('text');
       if (paste.length)
         document.execCommand('insertText', null, paste);
@@ -101,9 +103,10 @@ customElements.whenDefined('uce-lib').then(() => {
             this.parentNode.insertBefore(_code, select);
           }
           _code.className = `${props.lang || 'plaintext'} uce-highlight`;
-          _code.innerHTML = this.innerHTML
-                                .replace(/<(?:div|p)>/g, '\n')
-                                .replace(/<[^>]+?>/g, '');
+          const clean = this.innerHTML
+                            .replace(/<(?:div|p).*?>/g, '\n')
+                            .replace(/<[^>]+?>/g, '');
+          _code.innerHTML = this.innerHTML = clean;
           hljs.highlightBlock(_code);
           this.scrollSync();
           if (!this.editing)
