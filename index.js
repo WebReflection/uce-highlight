@@ -147,7 +147,7 @@
         if (!loadHLJS) {
           loadHLJS = resolveHLJS(this.props.theme);
           var ucehl = 'uce-highlight';
-          ustyler("*:not(pre)>code[is=\"".concat(ucehl, "\"]{display:inline}") + "pre.".concat(ucehl, "{position:relative}") + "pre.".concat(ucehl, ">.").concat(ucehl, "{position:absolute}") + "pre.".concat(ucehl, ">code.").concat(ucehl, "{top:0;left:0;width:100%;pointer-events:none}") + "pre.".concat(ucehl, ">select.").concat(ucehl, "{top:1px;right:1px;border:0}") + "code.".concat(ucehl, "{transition:opacity .3s}"));
+          ustyler("*:not(pre)>code[is=\"".concat(ucehl, "\"]{display:inline}") + "pre.".concat(ucehl, "{position:relative}") + "pre.".concat(ucehl, ">.").concat(ucehl, "{position:absolute}") + "pre.".concat(ucehl, ">code.").concat(ucehl, "{top:0;left:0;width:100%;pointer-events:none}") + "pre.".concat(ucehl, ">select.").concat(ucehl, "{top:1px;right:1px;border:0}") + "[dir=\"rtl\"] select.".concat(ucehl, "{left:1px;right:auto !important}") + "code.".concat(ucehl, "{transition:opacity .3s}"));
         }
 
         var parentNode = this.parentNode;

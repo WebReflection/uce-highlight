@@ -35,9 +35,6 @@
   h1 {
     color: #aaa;
   }
-  small {
-    font-size: small;
-  }
   main {
     font-family: sans-serif;
     margin: auto;
@@ -56,7 +53,7 @@
 </head>
 <body>
   <main>
-    <h1>uce-highlight <small>(work in progress)</small></h1>
+    <h1>uce-highlight</h1>
     <hr>
     <p>
       Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam ut tellus eget nibh dictum volutpat a in orci. Fusce eget diam eu nibh iaculis fermentum. Nullam faucibus nisi leo. Cras mattis augue maximus neque facilisis, sit amet tincidunt quam aliquet. Praesent nec orci convallis, congue ex eu, congue mi. Proin pharetra metus quis dui posuere, vel feugiat purus vestibulum. <code is="uce-highlight">var code = 123;</code> Maecenas scelerisque volutpat lorem, sit amet scelerisque nunc efficitur quis. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Vivamus vulputate massa eget facilisis rhoncus.
@@ -120,10 +117,13 @@ customElements.whenDefined('uce-lib').then(() => {
     <p>
       Sed posuere congue pharetra. Nunc eget nunc id est fermentum ullamcorper id et nunc. Nam at est eu lacus tincidunt aliquet porttitor quis erat. Fusce sit amet venenatis enim. Nunc molestie convallis velit. Maecenas euismod elementum risus nec vestibulum. Morbi lorem nisl, auctor bibendum consectetur eget, euismod pretium augue. Integer tincidunt enim sed orci mollis, sit amet euismod libero scelerisque. Aliquam et enim maximus, volutpat ipsum eu, luctus justo.
     </p>
+    <pre><code is="uce-highlight">
+Your text here ...
+    </code></pre>
     <p>
       Aenean at velit eu sapien tincidunt fringilla ut sed sem. Duis a faucibus nibh, et volutpat nisl. Aenean non tristique diam, eu varius justo. Maecenas in aliquam risus. Proin sit amet sapien vehicula odio vulputate lacinia. Duis feugiat ligula id erat viverra, in suscipit neque aliquet. Duis vel felis tortor. Vestibulum congue diam tincidunt justo posuere, sit amet bibendum ligula ullamcorper. Quisque efficitur est eu ultricies commodo. Nulla nec scelerisque metus, quis aliquet sapien.
     </p>
-    <pre><code is="uce-highlight">
+    <pre  dir="rtl"><code is="uce-highlight">
 Your text here ...
     </code></pre>
     <p>
