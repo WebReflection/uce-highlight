@@ -6,6 +6,7 @@ export default {
   plugins: [
     includePaths({
       include: {
+        '@ungap/assign': 'node_modules/@ungap/degap/assign.js',
         '@ungap/create-content': 'node_modules/@ungap/degap/create-content.js'
       },
     }),

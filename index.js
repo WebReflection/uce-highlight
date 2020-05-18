@@ -32,26 +32,44 @@
     return document.head.appendChild(style);
   }
 
-  var CDN = '//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3'; // list of themes in the CSS section
+  /*! (c) Andrea Giammarchi - ISC */
+  var assign = Object.assign || function (target) {
+    for (var o, i = 1; i < arguments.length; i++) {
+      o = arguments[i] || {};
+
+      for (var k in o) {
+        if (o.hasOwnProperty(k)) target[k] = o[k];
+      }
+    }
+
+    return target;
+  };
+
+  var CDN = '//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3';
+
+  var append = function append(what) {
+    document.head.appendChild(what);
+  };
+
+  var create = function create(what, attrs) {
+    return assign(document.createElement(what), attrs);
+  }; // list of themes in the CSS section
   // https://cdnjs.com/libraries/highlight.js
   // just pass the theme name: /style/{{name}}.min.css
   // i.e. loadTheme('tomorrow-night')
 
+
   var themeCache = new Map();
   var loadTheme = function loadTheme(theme) {
     var link = themeCache.get(theme);
-
-    if (!link) {
-      link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = CDN + '/styles/' + theme + '.min.css';
-      themeCache.set(theme, link);
-    }
-
+    if (!link) themeCache.set(theme, link = create('link', {
+      href: "".concat(CDN, "/styles/").concat(theme, ".min.css"),
+      rel: 'stylesheet'
+    }));
     themeCache.forEach(function (live) {
       if (live !== link && live.parentNode) live.parentNode.removeChild(live);
     });
-    document.head.appendChild(link);
+    append(link);
   };
   var raf = function raf(fn) {
     requestAnimationFrame(function () {
@@ -59,22 +77,26 @@
     });
   };
   var resolveHLJS = function resolveHLJS(theme) {
-    return new Promise(function ($) {
+    return new Promise(function (onload) {
       var t = theme || 'default';
-      if (window.hljs) [].some.call(document.querySelectorAll('link'), function (link) {
-        var rel = link.rel,
-            href = link.href;
 
-        if (/stylesheet/i.test(rel) && /\/highlight\.js\//.test(href)) {
-          themeCache.set(t, link);
-          return true;
-        }
-      });else {
+      if (window.hljs) {
+        [].some.call(document.querySelectorAll('link'), function (link) {
+          var rel = link.rel,
+              href = link.href;
+
+          if (/stylesheet/i.test(rel) && /\/highlight\.js\//.test(href)) {
+            themeCache.set(t, link);
+            return true;
+          }
+        });
+        onload();
+      } else {
         loadTheme(t);
-        var script = document.createElement('script');
-        script.src = CDN + '/highlight.min.js';
-        script.onload = $;
-        document.head.appendChild(script);
+        append(create('script', {
+          src: "".concat(CDN, "/highlight.min.js"),
+          onload: onload
+        }));
       }
     });
   };

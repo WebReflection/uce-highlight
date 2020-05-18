@@ -41,6 +41,7 @@
   },
   "unpkg": "min.js",
   "dependencies": {
+    "@ungap/assign": "^0.2.0",
     "ustyler": "^1.0.1"
   }
 }
