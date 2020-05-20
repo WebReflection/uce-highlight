@@ -183,7 +183,7 @@
       onpaste: function onpaste(event) {
         event.preventDefault();
         var paste = (event.clipboardData || clipboardData).getData('text');
-        if (paste.length) document.execCommand('insertText', null, paste);
+        if (paste.length) document.execCommand('insertText', null, paste.replace(/\r?\n/g, '\r\n'));
       },
       onchange: function onchange(_ref) {
         var currentTarget = _ref.currentTarget;

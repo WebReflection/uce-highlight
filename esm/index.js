@@ -65,7 +65,7 @@ customElements.whenDefined('uce-lib').then(() => {
       event.preventDefault();
       const paste = (event.clipboardData || clipboardData).getData('text');
       if (paste.length)
-        document.execCommand('insertText', null, paste);
+        document.execCommand('insertText', null, paste.replace(/\r?\n/g, '\r\n'));
     },
     onchange({currentTarget}) {
       this.setAttribute('lang', currentTarget.value);
