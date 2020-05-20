@@ -27,7 +27,7 @@ customElements.whenDefined('uce-lib').then(() => {
         const code = `code.${ucehl}`;
         const select = `select.${ucehl}`;
         const oh = 'overflow:hidden;';
-        (0, _ustyler.default)(`*:not(pre)>code[is="${ucehl}"]{display:inline}` + `${pre}{${oh}padding:0;position:relative}` + `${pre} p,${pre} div{padding:0;margin:0}` + `${pre}>*{box-sizing:border-box}` + `${pre}>.${ucehl}{position:absolute}` + `${pre}>${code}{${oh}top:0;left:0;width:100%;pointer-events:none}` + `${select}{top:1px;right:1px;border:0}` + `${select}:not(:focus):not(:hover){opacity:.5}` + `[dir="rtl"] ${select}{left:1px;right:auto}` + `${code},${select}{transition:opacity .3s}`);
+        (0, _ustyler.default)(`*:not(pre)>code[is="${ucehl}"]{display:inline}` + `${pre}{${oh}padding:0;position:relative}` + `${pre} p,${pre} div{padding:0;margin:0}` + `${pre}>*{box-sizing:border-box}` + `${pre}>code[is="${ucehl}"]{min-height:40px}` + `${pre}>.${ucehl}{position:absolute}` + `${pre}>${code}{${oh}top:0;left:0;width:100%;pointer-events:none}` + `${select}{top:1px;right:1px;border:0}` + `${select}:not(:focus):not(:hover){opacity:.5}` + `[dir="rtl"] ${select}{left:1px;right:auto}` + `${code},${select}{transition:opacity .3s}`);
       }
 
       const {

@@ -151,7 +151,7 @@
           var code = "code.".concat(ucehl);
           var select = "select.".concat(ucehl);
           var oh = 'overflow:hidden;';
-          ustyler("*:not(pre)>code[is=\"".concat(ucehl, "\"]{display:inline}") + "".concat(pre, "{").concat(oh, "padding:0;position:relative}") + "".concat(pre, " p,").concat(pre, " div{padding:0;margin:0}") + "".concat(pre, ">*{box-sizing:border-box}") + "".concat(pre, ">.").concat(ucehl, "{position:absolute}") + "".concat(pre, ">").concat(code, "{").concat(oh, "top:0;left:0;width:100%;pointer-events:none}") + "".concat(select, "{top:1px;right:1px;border:0}") + "".concat(select, ":not(:focus):not(:hover){opacity:.5}") + "[dir=\"rtl\"] ".concat(select, "{left:1px;right:auto}") + "".concat(code, ",").concat(select, "{transition:opacity .3s}"));
+          ustyler("*:not(pre)>code[is=\"".concat(ucehl, "\"]{display:inline}") + "".concat(pre, "{").concat(oh, "padding:0;position:relative}") + "".concat(pre, " p,").concat(pre, " div{padding:0;margin:0}") + "".concat(pre, ">*{box-sizing:border-box}") + "".concat(pre, ">code[is=\"").concat(ucehl, "\"]{min-height:40px}") + "".concat(pre, ">.").concat(ucehl, "{position:absolute}") + "".concat(pre, ">").concat(code, "{").concat(oh, "top:0;left:0;width:100%;pointer-events:none}") + "".concat(select, "{top:1px;right:1px;border:0}") + "".concat(select, ":not(:focus):not(:hover){opacity:.5}") + "[dir=\"rtl\"] ".concat(select, "{left:1px;right:auto}") + "".concat(code, ",").concat(select, "{transition:opacity .3s}"));
         }
 
         var parentNode = this.parentNode;
