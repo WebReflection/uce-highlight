@@ -130,6 +130,7 @@
 
     return data;
   }
+  var privates = new WeakMap();
   customElements.whenDefined('uce-lib').then(function () {
     var _customElements$get = customElements.get('uce-lib'),
         define = _customElements$get.define,
@@ -141,9 +142,14 @@
       observedAttributes: ['lang', 'theme'],
       attributeChanged: function attributeChanged(name, _, val) {
         if (name === 'theme') loadTheme(val);
-        if (this._code) this.render();
+        if (privates.get(this).code) this.render();
       },
       init: function init() {
+        privates.set(this, {
+          editing: false,
+          code: null
+        });
+
         if (!loadHLJS) {
           loadHLJS = resolveHLJS(this.props.theme);
           var ucehl = 'uce-highlight';
@@ -151,96 +157,116 @@
           var code = "code.".concat(ucehl);
           var select = "select.".concat(ucehl);
           var oh = 'overflow:hidden;';
-          ustyler("*:not(pre)>code[is=\"".concat(ucehl, "\"]{display:inline}") + "".concat(pre, "{").concat(oh, "padding:0;position:relative}") + "".concat(pre, " p,").concat(pre, " div{padding:0;margin:0}") + "".concat(pre, ">*{box-sizing:border-box}") + "".concat(pre, ">code[is=\"").concat(ucehl, "\"]{min-height:40px}") + "".concat(pre, ">.").concat(ucehl, "{position:absolute}") + "".concat(pre, ">").concat(code, "{").concat(oh, "top:0;left:0;width:100%;pointer-events:none}") + "".concat(select, "{top:1px;right:1px;border:0}") + "".concat(select, ":not(:focus):not(:hover){opacity:.5}") + "[dir=\"rtl\"] ".concat(select, "{left:1px;right:auto}") + "".concat(code, ",").concat(select, "{transition:opacity .3s}"));
+          ustyler("*:not(pre)>code[is=\"".concat(ucehl, "\"]{display:inline}") + "".concat(pre, "{").concat(oh, "padding:0;position:relative}") + "".concat(pre, ">*{box-sizing:border-box}") + "".concat(pre, ">code[is=\"").concat(ucehl, "\"]{min-height:40px}") + "".concat(pre, ">.").concat(ucehl, "{position:absolute}") + "".concat(pre, ">").concat(code, "{").concat(oh, "top:0;left:0;width:100%;pointer-events:none}") + "".concat(pre, ">").concat(code, " *{white-space:nowrap}") + "".concat(select, "{top:1px;right:1px;border:0}") + "".concat(select, ":not(:focus):not(:hover){opacity:.5}") + "[dir=\"rtl\"] ".concat(select, "{left:1px;right:auto}") + "".concat(code, ",").concat(select, "{transition:opacity .3s}"));
         }
 
         var parentNode = this.parentNode;
-        this.multiLine = /^pre$/i.test(parentNode.nodeName);
-        this.contentEditable = this.multiLine;
-        this._code = null;
-        if (this.multiLine) parentNode.classList.add('uce-highlight');
+        if (this.contentEditable = /^pre$/i.test(parentNode.nodeName)) parentNode.classList.add('uce-highlight');
         this.classList.add('hljs');
         this.render();
       },
       onfocus: function onfocus() {
-        this.editing = true;
-        if (this._code) this._code.style.opacity = 0;
+        var _ = privates.get(this);
+
+        _.editing = true;
+        if (_.code) _.code.style.opacity = 0;
       },
       onblur: function onblur() {
-        this.editing = false;
-        if (this._code) this.render();
+        var _ = privates.get(this);
+
+        _.editing = false;
+        if (_.code) this.render();
       },
       onkeydown: function onkeydown(event) {
-        var ctrlKey = event.metaKey || event.ctrlKey;
+        var metaKey = event.metaKey,
+            ctrlKey = event.ctrlKey,
+            key = event.key;
 
-        if (ctrlKey && event.keyCode == 83) {
-          event.preventDefault();
-          this.dispatchEvent(new CustomEvent('controlSave', {
-            bubbles: true
-          }));
+        switch (key.toLowerCase()) {
+          case 'enter':
+            event.preventDefault();
+            addText.call(this, '\n');
+            break;
+
+          case 's':
+            if (metaKey || ctrlKey) event.preventDefault();
+            break;
         }
       },
       onpaste: function onpaste(event) {
         event.preventDefault();
         var paste = (event.clipboardData || clipboardData).getData('text');
-        if (paste.length) document.execCommand('insertText', null, paste.replace(/\r?\n/g, '\r\n'));
+        if (paste.length) addText.call(this, paste.replace(/\r\n/g, '\n'));
       },
       onchange: function onchange(_ref) {
         var currentTarget = _ref.currentTarget;
         this.setAttribute('lang', currentTarget.value);
       },
-      onscroll: function onscroll() {
-        this.scrollSync();
-      },
       onmousewheel: function onmousewheel() {
-        this.scrollSync();
+        scrollSync.call(this);
       },
-      scrollSync: function scrollSync() {
-        if (this._code) {
-          this._code.scrollTop = this.scrollTop;
-          this._code.scrollLeft = this.scrollLeft;
-        }
+      onscroll: function onscroll() {
+        scrollSync.call(this);
       },
       render: function render() {
         var _this = this;
 
-        if (this.multiLine) loadHLJS.then(function () {
+        if (this.contentEditable == 'true') loadHLJS.then(function () {
+          var _ = privates.get(_this);
+
           var _window = window,
               hljs = _window.hljs;
-          var _code = _this._code,
-              props = _this.props;
+          var lang = _this.props.lang;
 
-          if (!_code) {
+          if (!_.code) {
+            var node = html.node;
             var langs = hljs.listLanguages();
-            var select = html.node(_templateObject(), _this, langs.map(function (lang) {
-              return html.node(_templateObject2(), lang, lang);
+            var select = node(_templateObject(), _this, langs.map(function (lang) {
+              return node(_templateObject2(), lang, lang);
             }));
-            var index = langs.indexOf(props.lang);
+            var index = langs.indexOf(lang);
             select.selectedIndex = index < 0 ? langs.indexOf('plaintext') : index;
-
-            _this.parentNode.insertBefore(select, _this.nextSibling);
-
-            _this._code = _code = html.node(_templateObject3());
-            _code.style.opacity = 0;
-
-            _this.parentNode.insertBefore(_code, select);
+            _.code = node(_templateObject3());
+            _.code.style.opacity = 0;
+            var parentNode = _this.parentNode;
+            parentNode.insertBefore(select, _this.nextSibling);
+            parentNode.insertBefore(_.code, select);
           }
 
-          _code.className = "".concat(props.lang || 'plaintext', " uce-highlight");
-
-          var clean = _this.innerHTML.replace(/<(?:div|p).*?>/g, '\n').replace(/<[^>]+?>/g, '');
-
-          _code.innerHTML = _this.innerHTML = clean;
-          hljs.highlightBlock(_code);
-
-          _this.scrollSync();
-
-          if (!_this.editing) raf(function () {
-            return _code.style.opacity = 1;
+          var textContent = _this.textContent;
+          _.code.className = "".concat(lang || 'plaintext', " uce-highlight");
+          _.code.textContent = _this.textContent = textContent;
+          hljs.highlightBlock(_.code);
+          scrollSync.call(_this);
+          if (!_.editing) raf(function () {
+            return _.code.style.opacity = 1;
           });
         });
       }
     });
   });
+
+  function addText(text) {
+    var ownerDocument = this.ownerDocument;
+    var selection = ownerDocument.getSelection();
+    var range = selection.getRangeAt(0);
+    var nl = ownerDocument.createTextNode(text);
+    range.deleteContents();
+    range.insertNode(nl);
+    range.selectNode(nl);
+    selection.removeAllRanges();
+    selection.addRange(range);
+    selection.collapseToEnd();
+  }
+
+  function scrollSync() {
+    var _privates$get = privates.get(this),
+        code = _privates$get.code;
+
+    if (code) {
+      code.scrollTop = this.scrollTop;
+      code.scrollLeft = this.scrollLeft;
+    }
+  }
 
 }());

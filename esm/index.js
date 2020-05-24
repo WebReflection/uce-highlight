@@ -2,6 +2,8 @@ import ustyler from 'ustyler';
 
 import {loadTheme, raf, resolveHLJS} from './utils.js';
 
+const privates = new WeakMap;
+
 customElements.whenDefined('uce-lib').then(() => {
   const {define, html} = customElements.get('uce-lib');
   let loadHLJS = null;
@@ -11,10 +13,11 @@ customElements.whenDefined('uce-lib').then(() => {
     attributeChanged(name, _, val) {
       if (name === 'theme')
         loadTheme(val);
-      if (this._code)
+      if (privates.get(this).code)
         this.render();
     },
     init() {
+      privates.set(this, {editing: false, code: null});
       if (!loadHLJS) {
         loadHLJS = resolveHLJS(this.props.theme);
         const ucehl = 'uce-highlight';
@@ -25,11 +28,11 @@ customElements.whenDefined('uce-lib').then(() => {
         ustyler(
           `*:not(pre)>code[is="${ucehl}"]{display:inline}` +
           `${pre}{${oh}padding:0;position:relative}` +
-          `${pre} p,${pre} div{padding:0;margin:0}` +
           `${pre}>*{box-sizing:border-box}` +
           `${pre}>code[is="${ucehl}"]{min-height:40px}` +
           `${pre}>.${ucehl}{position:absolute}` +
           `${pre}>${code}{${oh}top:0;left:0;width:100%;pointer-events:none}` +
+          `${pre}>${code} *{white-space:nowrap}` +
           `${select}{top:1px;right:1px;border:0}` +
           `${select}:not(:focus):not(:hover){opacity:.5}` +
           `[dir="rtl"] ${select}{left:1px;right:auto}` +
@@ -37,81 +40,102 @@ customElements.whenDefined('uce-lib').then(() => {
         );
       }
       const {parentNode} = this;
-      this.multiLine = /^pre$/i.test(parentNode.nodeName);
-      this.contentEditable = this.multiLine;
-      this._code = null;
-      if (this.multiLine)
+      if (this.contentEditable = /^pre$/i.test(parentNode.nodeName))
         parentNode.classList.add('uce-highlight');
       this.classList.add('hljs');
       this.render();
     },
     onfocus() {
-      this.editing = true;
-      if (this._code)
-        this._code.style.opacity = 0;
+      const _ = privates.get(this);
+      _.editing = true;
+      if (_.code)
+        _.code.style.opacity = 0;
     },
     onblur() {
-      this.editing = false;
-      if (this._code)
+      const _ = privates.get(this);
+      _.editing = false;
+      if (_.code)
         this.render();
     },
     onkeydown(event) {
-      const ctrlKey = event.metaKey || event.ctrlKey;
-      if (ctrlKey && event.keyCode == 83) {
-        event.preventDefault();
-        this.dispatchEvent(new CustomEvent('controlSave', {bubbles: true}));
+      const {metaKey, ctrlKey, key} = event;
+      switch (key.toLowerCase()) {
+        case 'enter':
+          event.preventDefault();
+          addText.call(this, '\n');
+          break;
+        case 's':
+          if (metaKey || ctrlKey)
+            event.preventDefault();
+          break;
       }
     },
     onpaste(event) {
       event.preventDefault();
       const paste = (event.clipboardData || clipboardData).getData('text');
       if (paste.length)
-        document.execCommand('insertText', null, paste.replace(/\r?\n/g, '\r\n'));
+        addText.call(this, paste.replace(/\r\n/g, '\n'));
     },
     onchange({currentTarget}) {
       this.setAttribute('lang', currentTarget.value);
     },
-    onscroll() {
-      this.scrollSync();
-    },
     onmousewheel() {
-      this.scrollSync();
+      scrollSync.call(this);
     },
-    scrollSync() {
-      if (this._code) {
-        this._code.scrollTop = this.scrollTop;
-        this._code.scrollLeft = this.scrollLeft;
-      }
+    onscroll() {
+      scrollSync.call(this);
     },
     render() {
-      if (this.multiLine)
+      if (this.contentEditable == 'true')
         loadHLJS.then(() => {
+          const _ = privates.get(this);
           const {hljs} = window;
-          let {_code, props} = this;
-          if (!_code) {
+          const {lang} = this.props;
+          if (!_.code) {
+            const {node} = html;
             const langs = hljs.listLanguages();
-            const select = html.node`<select class="hljs uce-highlight" onchange=${this}>${
+            const select = node`<select class="hljs uce-highlight" onchange=${this}>${
               langs.map(
-                lang => html.node`<option value=${lang}>${lang}</option>`
+                lang => node`<option value=${lang}>${lang}</option>`
               )
             }</select>`;
-            const index = langs.indexOf(props.lang);
+            const index = langs.indexOf(lang);
             select.selectedIndex = index < 0 ? langs.indexOf('plaintext') : index;
-            this.parentNode.insertBefore(select, this.nextSibling);
-            this._code = _code = html.node`<code></code>`;
-            _code.style.opacity = 0;
-            this.parentNode.insertBefore(_code, select);
+            _.code = node`<code></code>`;
+            _.code.style.opacity = 0;
+            const {parentNode} = this;
+            parentNode.insertBefore(select, this.nextSibling);
+            parentNode.insertBefore(_.code, select);
           }
-          _code.className = `${props.lang || 'plaintext'} uce-highlight`;
-          const clean = this.innerHTML
-                            .replace(/<(?:div|p).*?>/g, '\n')
-                            .replace(/<[^>]+?>/g, '');
-          _code.innerHTML = this.innerHTML = clean;
-          hljs.highlightBlock(_code);
-          this.scrollSync();
-          if (!this.editing)
-            raf(() => _code.style.opacity = 1);
+          const {textContent} = this;
+          _.code.className = `${lang || 'plaintext'} uce-highlight`;
+          _.code.textContent = this.textContent = textContent;
+          hljs.highlightBlock(_.code);
+          scrollSync.call(this);
+          if (!_.editing)
+            raf(() => _.code.style.opacity = 1);
         });
     }
   });
 });
+
+function addText(text) {
+  const {ownerDocument} = this;
+  const selection = ownerDocument.getSelection();
+  const range = selection.getRangeAt(0);
+  const nl = ownerDocument.createTextNode(text);
+  range.deleteContents();
+  range.insertNode(nl);
+  range.selectNode(nl);
+  selection.removeAllRanges();
+  selection.addRange(range);
+  selection.collapseToEnd();
+}
+
+function scrollSync() {
+  const {code} = privates.get(this);
+  if (code) {
+    code.scrollTop = this.scrollTop;
+    code.scrollLeft = this.scrollLeft;
+  }
+}
