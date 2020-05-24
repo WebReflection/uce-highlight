@@ -5,6 +5,9 @@ var _ustyler = require("ustyler");
 var _utils = require("./utils.js");
 
 const privates = new WeakMap();
+
+const sanitize = (_, nl, spaces, code) => `${nl ? '<br>' : ''}${spaces}<span>${code}</span>`;
+
 customElements.whenDefined('uce-lib').then(() => {
   const {
     define,
@@ -33,7 +36,7 @@ customElements.whenDefined('uce-lib').then(() => {
         const code = `code.${ucehl}`;
         const select = `select.${ucehl}`;
         const oh = 'overflow:hidden;';
-        (0, _ustyler.default)(`*:not(pre)>code[is="${ucehl}"]{display:inline}` + `${pre}{${oh}padding:0;position:relative}` + `${pre}>*{box-sizing:border-box}` + `${pre}>code[is="${ucehl}"]{min-height:40px}` + `${pre}>.${ucehl}{position:absolute}` + `${pre}>${code}{${oh}top:0;left:0;width:100%;pointer-events:none}` + `${pre}>${code} *{white-space:nowrap}` + `${select}{top:1px;right:1px;border:0}` + `${select}:not(:focus):not(:hover){opacity:.5}` + `[dir="rtl"] ${select}{left:1px;right:auto}` + `${code},${select}{transition:opacity .3s}`);
+        (0, _ustyler.default)(`*:not(pre)>code[is="${ucehl}"]{display:inline}` + `${pre}{${oh}padding:0;position:relative}` + `${pre}>*{box-sizing:border-box}` + `${pre}>code[is="${ucehl}"]{min-height:40px}` + `${pre}>.${ucehl}{position:absolute}` + `${pre}>${code}{${oh}top:0;left:0;width:100%;pointer-events:none}` + `${pre}>${code}>span{white-space:nowrap}` + `${select}{top:1px;right:1px;border:0}` + `${select}:not(:focus):not(:hover){opacity:.5}` + `[dir="rtl"] ${select}{left:1px;right:auto}` + `${code},${select}{transition:opacity .3s}`);
       }
 
       const {
@@ -131,6 +134,7 @@ customElements.whenDefined('uce-lib').then(() => {
         _.code.className = `${lang || 'plaintext'} uce-highlight`;
         _.code.textContent = this.textContent = textContent;
         hljs.highlightBlock(_.code);
+        _.code.innerHTML = _.code.innerHTML.replace(/(\r\n|\n)?(\s*)(.+)$/mg, sanitize);
         scrollSync.call(this);
         if (!_.editing) (0, _utils.raf)(() => _.code.style.opacity = 1);
       });

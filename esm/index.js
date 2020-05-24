@@ -4,6 +4,9 @@ import {loadTheme, raf, resolveHLJS} from './utils.js';
 
 const privates = new WeakMap;
 
+const sanitize = (_, nl, spaces, code) =>
+                  `${nl ? '<br>' : ''}${spaces}<span>${code}</span>`;
+
 customElements.whenDefined('uce-lib').then(() => {
   const {define, html} = customElements.get('uce-lib');
   let loadHLJS = null;
@@ -32,7 +35,7 @@ customElements.whenDefined('uce-lib').then(() => {
           `${pre}>code[is="${ucehl}"]{min-height:40px}` +
           `${pre}>.${ucehl}{position:absolute}` +
           `${pre}>${code}{${oh}top:0;left:0;width:100%;pointer-events:none}` +
-          `${pre}>${code} *{white-space:nowrap}` +
+          `${pre}>${code}>span{white-space:nowrap}` +
           `${select}{top:1px;right:1px;border:0}` +
           `${select}:not(:focus):not(:hover){opacity:.5}` +
           `[dir="rtl"] ${select}{left:1px;right:auto}` +
@@ -111,6 +114,9 @@ customElements.whenDefined('uce-lib').then(() => {
           _.code.className = `${lang || 'plaintext'} uce-highlight`;
           _.code.textContent = this.textContent = textContent;
           hljs.highlightBlock(_.code);
+          _.code.innerHTML = _.code.innerHTML.replace(
+            /(\r\n|\n)?(\s*)(.+)$/mg, sanitize
+          );
           scrollSync.call(this);
           if (!_.editing)
             raf(() => _.code.style.opacity = 1);

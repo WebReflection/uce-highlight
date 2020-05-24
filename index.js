@@ -131,6 +131,11 @@
     return data;
   }
   var privates = new WeakMap();
+
+  var sanitize = function sanitize(_, nl, spaces, code) {
+    return "".concat(nl ? '<br>' : '').concat(spaces, "<span>").concat(code, "</span>");
+  };
+
   customElements.whenDefined('uce-lib').then(function () {
     var _customElements$get = customElements.get('uce-lib'),
         define = _customElements$get.define,
@@ -157,7 +162,7 @@
           var code = "code.".concat(ucehl);
           var select = "select.".concat(ucehl);
           var oh = 'overflow:hidden;';
-          ustyler("*:not(pre)>code[is=\"".concat(ucehl, "\"]{display:inline}") + "".concat(pre, "{").concat(oh, "padding:0;position:relative}") + "".concat(pre, ">*{box-sizing:border-box}") + "".concat(pre, ">code[is=\"").concat(ucehl, "\"]{min-height:40px}") + "".concat(pre, ">.").concat(ucehl, "{position:absolute}") + "".concat(pre, ">").concat(code, "{").concat(oh, "top:0;left:0;width:100%;pointer-events:none}") + "".concat(pre, ">").concat(code, " *{white-space:nowrap}") + "".concat(select, "{top:1px;right:1px;border:0}") + "".concat(select, ":not(:focus):not(:hover){opacity:.5}") + "[dir=\"rtl\"] ".concat(select, "{left:1px;right:auto}") + "".concat(code, ",").concat(select, "{transition:opacity .3s}"));
+          ustyler("*:not(pre)>code[is=\"".concat(ucehl, "\"]{display:inline}") + "".concat(pre, "{").concat(oh, "padding:0;position:relative}") + "".concat(pre, ">*{box-sizing:border-box}") + "".concat(pre, ">code[is=\"").concat(ucehl, "\"]{min-height:40px}") + "".concat(pre, ">.").concat(ucehl, "{position:absolute}") + "".concat(pre, ">").concat(code, "{").concat(oh, "top:0;left:0;width:100%;pointer-events:none}") + "".concat(pre, ">").concat(code, ">span{white-space:nowrap}") + "".concat(select, "{top:1px;right:1px;border:0}") + "".concat(select, ":not(:focus):not(:hover){opacity:.5}") + "[dir=\"rtl\"] ".concat(select, "{left:1px;right:auto}") + "".concat(code, ",").concat(select, "{transition:opacity .3s}"));
         }
 
         var parentNode = this.parentNode;
@@ -237,6 +242,7 @@
           _.code.className = "".concat(lang || 'plaintext', " uce-highlight");
           _.code.textContent = _this.textContent = textContent;
           hljs.highlightBlock(_.code);
+          _.code.innerHTML = _.code.innerHTML.replace(/(\r\n|\n)?(\s*)(.+)$/mg, sanitize);
           scrollSync.call(_this);
           if (!_.editing) raf(function () {
             return _.code.style.opacity = 1;
